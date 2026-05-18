@@ -147,12 +147,12 @@ const TERRAIN_ZONES = [
   { color: 0xc8e6a0, x:  -80, z:  280, w: 200, h: 160, r: 1.8 },
   { color: 0x5aad4e, x:  600, z: -300, w: 350, h: 300, r: 0.8 },
 ];
-for (const t of TERRAIN_ZONES) {
+TERRAIN_ZONES.forEach((t, i) => {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(t.w, t.h),
     new THREE.MeshLambertMaterial({ color: t.color }));
   m.rotation.x = -Math.PI / 2; m.rotation.z = t.r;
-  m.position.set(t.x, 0.01, t.z); scene.add(m);
-}
+  m.position.set(t.x, 0.008 + i * 0.001, t.z); scene.add(m);
+});
 
 // Road strips
 const ROADS = [
@@ -165,12 +165,12 @@ for (const r of ROADS) {
   const road = new THREE.Mesh(new THREE.PlaneGeometry(r.w, r.len),
     new THREE.MeshLambertMaterial({ color: 0x555555 }));
   road.rotation.x = -Math.PI / 2; road.rotation.z = r.dir;
-  road.position.set(r.x, 0.015, r.z); scene.add(road);
+  road.position.set(r.x, 0.03, r.z); scene.add(road);
   // Centre line
   const line = new THREE.Mesh(new THREE.PlaneGeometry(0.4, r.len),
     new THREE.MeshLambertMaterial({ color: 0xffffaa }));
   line.rotation.x = -Math.PI / 2; line.rotation.z = r.dir;
-  line.position.set(r.x, 0.02, r.z); scene.add(line);
+  line.position.set(r.x, 0.04, r.z); scene.add(line);
 }
 
 // River ribbon
@@ -192,8 +192,8 @@ for (const r of ROADS) {
     const p = curve.getPoint(t);
     const tan = curve.getTangent(t).normalize();
     const rx = -tan.z, rz = tan.x;
-    verts.push(p.x - rx*W/2, 0.025, p.z - rz*W/2,
-               p.x + rx*W/2, 0.025, p.z + rz*W/2);
+    verts.push(p.x - rx*W/2, 0.055, p.z - rz*W/2,
+               p.x + rx*W/2, 0.055, p.z + rz*W/2);
     uvs.push(0, t*30, 1, t*30);
     if (i < SEG) {
       const a=i*2, b=a+1, c=a+2, d=a+3;
@@ -211,7 +211,7 @@ for (const r of ROADS) {
 // Lake
 const lake = new THREE.Mesh(new THREE.CircleGeometry(55, 20),
   new THREE.MeshLambertMaterial({ color: 0x3a8fcf, transparent: true, opacity: 0.85 }));
-lake.rotation.x = -Math.PI / 2; lake.position.set(-370, 0.025, -270); scene.add(lake);
+lake.rotation.x = -Math.PI / 2; lake.position.set(-370, 0.055, -270); scene.add(lake);
 
 // Mountains on horizon
 (function buildMountains() {
@@ -369,6 +369,17 @@ function worldObj(group, wx, wz, type, opts) {
   return o;
 }
 
+// ─── TEXT SPRITE HELPER ─────────────────────────────────────────
+function makeTextSprite(text, bg, fg) {
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=72;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle=bg||'#003388'; ctx.fillRect(0,0,256,72);
+  ctx.fillStyle=fg||'#ffffff'; ctx.font='bold 48px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,128,40);
+  const mat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false});
+  const sp=new THREE.Sprite(mat); sp.scale.set(5.5,1.6,1); return sp;
+}
+
 // ─── OBJECT FACTORIES ───────────────────────────────────────────
 function makeTree(x, z) {
   const g = new THREE.Group();
@@ -425,33 +436,110 @@ function makeBush(x, z) {
 
 function makeCow(x, z) {
   const g = new THREE.Group();
-  const bm = new THREE.MeshLambertMaterial({color:0xeeeeee});
-  const lm = new THREE.MeshLambertMaterial({color:0xdddddd});
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.8,1.0,2.8),bm);
-  body.position.y=1.2; body.castShadow=true; g.add(body);
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.8,1.0),bm);
-  head.position.set(0,1.8,1.6); g.add(head);
-  const spot = new THREE.Mesh(new THREE.SphereGeometry(0.38,6,5),
-    new THREE.MeshLambertMaterial({color:0x333333}));
-  spot.position.set(0.4,1.55,0.2); spot.scale.y=0.2; g.add(spot);
-  for (const [lx,lz] of [[-0.6,1.0],[0.6,1.0],[-0.6,-1.0],[0.6,-1.0]]) {
-    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,0.8,6),lm);
-    leg.position.set(lx,0.4,lz); g.add(leg);
+  const isBrown = Math.random()>0.55;
+  const bodyCol = isBrown ? 0xc8893b : 0xf0f0ee;
+  const darkCol = isBrown ? 0x7a4018 : 0x222222;
+  const bm = new THREE.MeshLambertMaterial({color:bodyCol});
+  const dm = new THREE.MeshLambertMaterial({color:darkCol});
+  // Body
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.0,2.8),bm);
+  body.position.y=1.25; body.castShadow=true; g.add(body);
+  // Spots (Holstein)
+  if (!isBrown) for (let i=0;i<2+Math.floor(Math.random()*2);i++) {
+    const sp=new THREE.Mesh(new THREE.SphereGeometry(0.28+Math.random()*0.18,5,4),dm);
+    sp.position.set((Math.random()-0.5)*1.4,1.25+(Math.random()-0.5)*0.35,(Math.random()-0.5)*2.0);
+    sp.scale.y=0.3; g.add(sp);
+  }
+  // Neck
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.3,0.65,6),bm);
+  neck.position.set(0,1.62,1.38); neck.rotation.x=0.38; g.add(neck);
+  // Head
+  const head=new THREE.Mesh(new THREE.BoxGeometry(0.82,0.72,0.92),bm);
+  head.position.set(0,1.84,1.9); g.add(head);
+  // Snout
+  const snout=new THREE.Mesh(new THREE.BoxGeometry(0.52,0.32,0.28),
+    new THREE.MeshLambertMaterial({color:0xffcccc}));
+  snout.position.set(0,1.72,2.38); g.add(snout);
+  for (const s of [-1,1]) {
+    const n=new THREE.Mesh(new THREE.SphereGeometry(0.07,4,4),
+      new THREE.MeshLambertMaterial({color:0x994444}));
+    n.position.set(s*0.13,1.71,2.54); g.add(n);
+  }
+  // Eyes + ears
+  for (const s of [-1,1]) {
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(0.09,5,4),
+      new THREE.MeshLambertMaterial({color:0x111111}));
+    eye.position.set(s*0.35,1.95,2.12); g.add(eye);
+    const ear=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.3,0.2),bm);
+    ear.position.set(s*0.5,2.02,1.88); ear.rotation.z=s*0.4; g.add(ear);
+  }
+  // Horns
+  if (Math.random()>0.4) for (const s of [-1,1]) {
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.08,0.44,5),
+      new THREE.MeshLambertMaterial({color:0xeeeecc}));
+    h.position.set(s*0.36,2.2,1.86); h.rotation.z=s*0.4; h.rotation.x=-0.2; g.add(h);
+  }
+  // Legs + hooves
+  for (const [lx,lz] of [[-0.62,1.0],[0.62,1.0],[-0.62,-1.0],[0.62,-1.0]]) {
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.13,0.86,6),bm);
+    leg.position.set(lx,0.43,lz); g.add(leg);
+    const hoof=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.14,0.28),dm);
+    hoof.position.set(lx,0.01,lz); g.add(hoof);
+  }
+  // Tail
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.04,0.78,5),bm);
+  tail.position.set(0,1.42,-1.5); tail.rotation.x=-0.4; g.add(tail);
+  const tuft=new THREE.Mesh(new THREE.SphereGeometry(0.14,5,4),dm);
+  tuft.position.set(0,1.1,-1.92); g.add(tuft);
+  // Udder
+  if (Math.random()>0.45) {
+    const ud=new THREE.Mesh(new THREE.SphereGeometry(0.26,6,5),
+      new THREE.MeshLambertMaterial({color:0xffbbbb}));
+    ud.position.set(0,0.66,-0.28); ud.scale.y=0.55; g.add(ud);
   }
   g.rotation.y=Math.random()*Math.PI*2;
-  const o = worldObj(g,x,z,'cow',{hopRadius:16});
+  const o=worldObj(g,x,z,'cow',{hopRadius:16});
   o.fleeing=false; o.fleeVx=0; o.fleeVz=0; o.fleeSpeed=14;
   return o;
 }
 
 function makeBird(x, z) {
   const g = new THREE.Group();
-  const mat = new THREE.MeshLambertMaterial({color:[0xffaa44,0xff6644,0xffdd88,0xee8844][Math.floor(Math.random()*4)]});
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.28,6,5),mat);
-  body.scale.set(1.4,0.7,1.0); body.position.y=0.4; g.add(body);
+  const cols=[0xffaa44,0xff6644,0xffdd88,0xee8844,0x44aaff,0xff44aa,0x88ee44];
+  const col=cols[Math.floor(Math.random()*cols.length)];
+  const mat=new THREE.MeshLambertMaterial({color:col});
+  const dark=new THREE.MeshLambertMaterial({color:new THREE.Color(col).multiplyScalar(0.55)});
+  // Body
+  const body=new THREE.Mesh(new THREE.SphereGeometry(0.3,7,5),mat);
+  body.scale.set(1.05,0.72,1.25); body.position.y=0.42; g.add(body);
+  // Head
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.2,7,5),mat);
+  head.position.set(0,0.66,0.3); g.add(head);
+  // Beak
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.22,5),
+    new THREE.MeshLambertMaterial({color:0xffcc44}));
+  beak.position.set(0,0.63,0.55); beak.rotation.x=Math.PI/2; g.add(beak);
+  // Eyes
   for (const s of [-1,1]) {
-    const wing=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.07,0.45),mat);
-    wing.position.set(s*0.5,0.42,0); wing.rotation.z=s*0.3; g.add(wing);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(0.065,5,4),
+      new THREE.MeshLambertMaterial({color:0x111111}));
+    eye.position.set(s*0.15,0.7,0.42); g.add(eye);
+  }
+  // Wings
+  for (const s of [-1,1]) {
+    const wing=new THREE.Mesh(new THREE.BoxGeometry(0.68,0.07,0.48),mat);
+    wing.position.set(s*0.54,0.44,0); wing.rotation.z=s*0.22; g.add(wing);
+    const tip=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.06,0.34),dark);
+    tip.position.set(s*0.88,0.44,-0.04); tip.rotation.z=s*0.28; g.add(tip);
+  }
+  // Tail
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.06,0.36),dark);
+  tail.position.set(0,0.36,-0.48); tail.rotation.x=0.28; g.add(tail);
+  // Feet
+  for (const s of [-1,1]) {
+    const foot=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.2,5),
+      new THREE.MeshLambertMaterial({color:0xffcc44}));
+    foot.position.set(s*0.11,0.06,0.08); g.add(foot);
   }
   g.rotation.y=Math.random()*Math.PI*2;
   const o=worldObj(g,x,z,'bird',{hopRadius:13});
@@ -477,6 +565,8 @@ function makeClinic(x, z) {
   const neonMat = new THREE.MeshLambertMaterial({color:0x00ffff, emissive:new THREE.Color(0,0.1,0.1)});
   const neon = new THREE.Mesh(new THREE.BoxGeometry(5,0.8,0.2),neonMat);
   neon.position.set(0,5.2,3.1); g.add(neon);
+  const label=makeTextSprite('CLINIC','#003388','#ffffff');
+  label.position.set(0,9,0); g.add(label);
   g.rotation.y=Math.random()*Math.PI*2;
   const o=worldObj(g,x,z,'clinic',{activationRadius:32,hopRadius:0});
   o.neonMat=neonMat; return o;
@@ -606,9 +696,59 @@ function makePark(x, z) {
       new THREE.MeshLambertMaterial({color:0x228B22}));
     cone.position.set(Math.cos(a)*7,1.75,Math.sin(a)*5); g.add(cone);
   }
+  const label=makeTextSprite('PARK','#226600','#ffffff');
+  label.position.set(0,6,0); g.add(label);
   g.rotation.y=Math.random()*Math.PI*2;
   const o=worldObj(g,x,z,'park',{activationRadius:28,hopRadius:0});
   o.swings=swings; o.swingAngle=0; return o;
+}
+
+function makeDuck(x, z) {
+  const g = new THREE.Group();
+  const wm=new THREE.MeshLambertMaterial({color:0xffffff});
+  const hm=new THREE.MeshLambertMaterial({color:0x226600}); // mallard head
+  const body=new THREE.Mesh(new THREE.SphereGeometry(0.38,7,5),wm);
+  body.scale.set(0.85,0.68,1.1); body.position.y=0.3; g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.2,7,5),hm);
+  head.position.set(0,0.58,0.33); g.add(head);
+  const bill=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.07,0.26),
+    new THREE.MeshLambertMaterial({color:0xff9900}));
+  bill.position.set(0,0.55,0.58); g.add(bill);
+  const wing=new THREE.Mesh(new THREE.BoxGeometry(0.52,0.12,0.58),wm);
+  wing.position.set(0,0.3,0); g.add(wing);
+  g.rotation.y=Math.random()*Math.PI*2;
+  const o=worldObj(g,x,z,'bird',{hopRadius:10});
+  o.flyingUp=false; o.flyTimer=0; o.flyVx=0; o.flyVy=0; o.flyVz=0;
+  return o;
+}
+
+function makeRabbit(x, z) {
+  const g = new THREE.Group();
+  const cols=[0xdddddd,0xccbbaa,0xffcccc,0x999999,0xffeedd];
+  const mat=new THREE.MeshLambertMaterial({color:cols[Math.floor(Math.random()*cols.length)]});
+  const body=new THREE.Mesh(new THREE.SphereGeometry(0.33,6,5),mat);
+  body.scale.set(0.82,1.0,1.0); body.position.y=0.4; g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,5),mat);
+  head.position.set(0,0.76,0.26); g.add(head);
+  for (const s of [-1,1]) {
+    const ear=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,0.48,5),mat);
+    ear.position.set(s*0.13,1.12,0.24); ear.rotation.z=s*0.1; g.add(ear);
+    const inner=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.055,0.44,5),
+      new THREE.MeshLambertMaterial({color:0xffaaaa}));
+    inner.position.set(s*0.13,1.12,0.25); inner.rotation.z=s*0.1; g.add(inner);
+  }
+  const tail=new THREE.Mesh(new THREE.SphereGeometry(0.13,5,4),
+    new THREE.MeshLambertMaterial({color:0xffffff}));
+  tail.position.set(0,0.38,-0.36); g.add(tail);
+  for (const s of [-1,1]) {
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(0.065,5,4),
+      new THREE.MeshLambertMaterial({color:0xff3333}));
+    eye.position.set(s*0.15,0.82,0.46); g.add(eye);
+  }
+  g.rotation.y=Math.random()*Math.PI*2;
+  const o=worldObj(g,x,z,'rabbit',{hopRadius:14});
+  o.fleeing=false; o.fleeVx=0; o.fleeVz=0; o.fleeSpeed=22;
+  return o;
 }
 
 function makeSchool(x, z) {
@@ -636,6 +776,8 @@ function makeSchool(x, z) {
   const flag=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.1,0.05),
     new THREE.MeshLambertMaterial({color:0xff5500}));
   flag.position.set(9.6,8,0); g.add(flag);
+  const label=makeTextSprite('SCHOOL','#cc4400','#ffffff');
+  label.position.set(0,10.5,0); g.add(label);
   g.rotation.y=Math.random()*Math.PI*2;
   const o=worldObj(g,x,z,'school',{activationRadius:28,hopRadius:0});
   o.bell=bell; o.bellAngle=0; return o;
@@ -648,9 +790,10 @@ const activeChunks = new Map();
 
 const OBJ_TYPES = [
   {fn:makeTree,   w:28}, {fn:makeHouse,  w:14}, {fn:makeBush,   w:18},
-  {fn:makeCow,    w:9},  {fn:makeBird,   w:9},  {fn:makeClinic, w:2},
+  {fn:makeCow,    w:8},  {fn:makeBird,   w:8},  {fn:makeClinic, w:2},
   {fn:makeAmusementPark,w:2}, {fn:makeConstruction,w:3},
   {fn:makePark,   w:5},  {fn:makeSchool, w:3},
+  {fn:makeDuck,   w:6},  {fn:makeRabbit, w:7},
 ];
 const OBJ_TOTAL = OBJ_TYPES.reduce((s,t)=>s+t.w, 0);
 
@@ -660,14 +803,49 @@ function pickObjFn() {
   return makeTree;
 }
 
+const _riverPts=[[-900,-400],[-550,-150],[-220,60],[90,-90],[380,130],[680,350],[950,560]];
+function distToRiver(x,z){
+  let d=Infinity;
+  for(let i=0;i<_riverPts.length-1;i++){
+    const [x1,z1]=_riverPts[i],[x2,z2]=_riverPts[i+1];
+    const dx=x2-x1,dz=z2-z1,l2=dx*dx+dz*dz;
+    const t=Math.max(0,Math.min(1,((x-x1)*dx+(z-z1)*dz)/l2));
+    const nx=x1+t*dx-x,nz=z1+t*dz-z;
+    const cd=Math.sqrt(nx*nx+nz*nz);
+    if(cd<d)d=cd;
+  }
+  return d;
+}
+function distToRoad(x,z){
+  let d=Infinity;
+  for(const r of ROADS){
+    const fx=Math.sin(r.dir),fz=Math.cos(r.dir);
+    const dx=x-r.x,dz=z-r.z;
+    const proj=dx*fx+dz*fz;
+    if(Math.abs(proj)>r.len/2) continue;
+    const cd=Math.abs(dx*fz-dz*fx);
+    if(cd<d)d=cd;
+  }
+  return d;
+}
+
 function spawnChunk(cx, cz) {
   const objs = [];
   const n = 3 + Math.floor(Math.random() * 5);
   for (let i = 0; i < n; i++) {
     const x = cx * CHUNK_SIZE + 4 + Math.random() * (CHUNK_SIZE - 8);
     const z = cz * CHUNK_SIZE + 4 + Math.random() * (CHUNK_SIZE - 8);
-    if (x*x + z*z < 18*18) continue; // keep start area clear
-    const obj = pickObjFn()(x, z);
+    if (x*x + z*z < 18*18) continue;
+    // Bias object type by proximity to river/road
+    let fn;
+    const rd=distToRiver(x,z), rRd=distToRoad(x,z);
+    if (rd < 28 && Math.random() < 0.7)
+      fn = Math.random() < 0.55 ? makeHouse : (Math.random()<0.5 ? makeBush : makeDuck);
+    else if (rRd < 15 && Math.random() < 0.65)
+      fn = Math.random() < 0.75 ? makeTree : makeHouse;
+    else
+      fn = pickObjFn();
+    const obj = fn(x, z);
     objs.push(obj); allWorldObjects.push(obj);
   }
   return objs;
@@ -709,10 +887,11 @@ function updateWorldObjects(dt, px, pz) {
     // Hop trigger (trees, houses, bushes) — exaggerated comic leap
     if (o.hopRadius > 0 && dist < o.hopRadius && !o.isHopping) {
       const len = dist || 1;
-      const force = 1.0 + (o.hopRadius - dist) / o.hopRadius; // stronger the closer
+      const force = 1.0 + (o.hopRadius - dist) / o.hopRadius;
       o.vx = -(dx/len) * 22 * force; o.vz = -(dz/len) * 22 * force; o.vy = 14 * force;
-      o.spinV = (Math.random()-0.5) * 8; // comic spin
+      o.spinV = (Math.random()-0.5) * 8;
       o.isHopping = true;
+      beep(180 + Math.random()*180, 0.18, 'sine', 0.06);
     }
     if (o.isHopping) {
       o.wx += o.vx * dt; o.wz += o.vz * dt;
@@ -764,6 +943,25 @@ function updateWorldObjects(dt, px, pz) {
         o.flyVy -= 5 * dt;
         if (o.flyTimer <= 0 || o.hopY <= 0) { o.hopY = 0; o.flyingUp = false; }
         o.group.position.set(o.wx, o.hopY, o.wz);
+      }
+    }
+
+    // Rabbit — quick zigzag sprint away
+    if (o.type === 'rabbit') {
+      if (dist < o.hopRadius && !o.fleeing) {
+        const len=dist||1;
+        o.fleeing=true;
+        const jitter=(Math.random()-0.5)*Math.PI*0.6;
+        o.fleeVx=-(dx/len+Math.sin(jitter))*o.fleeSpeed;
+        o.fleeVz=-(dz/len+Math.cos(jitter))*o.fleeSpeed;
+        o.group.rotation.y=Math.atan2(-dx,-dz);
+        beep(320+Math.random()*120, 0.12, 'sine', 0.05);
+      }
+      if (o.fleeing) {
+        o.wx+=o.fleeVx*dt; o.wz+=o.fleeVz*dt;
+        o.fleeVx*=Math.pow(0.88,dt*60); o.fleeVz*=Math.pow(0.88,dt*60);
+        o.group.position.set(o.wx,0,o.wz);
+        if (Math.abs(o.fleeVx)+Math.abs(o.fleeVz)<0.4) o.fleeing=false;
       }
     }
 
@@ -821,12 +1019,15 @@ function updateWorldObjects(dt, px, pz) {
 
 // ─── AI CARS ────────────────────────────────────────────────────
 const aiDefs = [
-  { color:0x22cc44, type:'green',  wx: 55, wz: 90,  heading:0,        maxSpeed:22 },
-  { color:0x22cc44, type:'green',  wx:-90, wz: 60,  heading:Math.PI,  maxSpeed:22 },
-  { color:0x2266ff, type:'blue',   wx:110, wz:-70,  heading:Math.PI/2,maxSpeed:28 },
-  { color:0x2266ff, type:'blue',   wx:-70, wz:-110, heading:-Math.PI/4,maxSpeed:28 },
-  { color:0xffffff, type:'white',  wx:-60, wz:-110, heading:1,        maxSpeed:20 },
-  { color:0xffffff, type:'white',  wx:120, wz: 130, heading:2,        maxSpeed:20 },
+  { color:0x22cc44, type:'green',  wx: 55,  wz: 90,  heading:0,         maxSpeed:22 },
+  { color:0x22cc44, type:'green',  wx:-90,  wz: 60,  heading:Math.PI,   maxSpeed:22 },
+  { color:0x2266ff, type:'blue',   wx:110,  wz:-70,  heading:Math.PI/2, maxSpeed:28 },
+  { color:0x2266ff, type:'blue',   wx:-70,  wz:-110, heading:-Math.PI/4,maxSpeed:28 },
+  { color:0xffffff, type:'white',  wx:-60,  wz:-110, heading:1,         maxSpeed:20 },
+  { color:0xffffff, type:'white',  wx:120,  wz: 130, heading:2,         maxSpeed:20 },
+  { color:0xff8800, type:'orange', wx: 80,  wz:-140, heading:0.5,       maxSpeed:26 },
+  { color:0xff8800, type:'orange', wx:-140, wz: 80,  heading:2.0,       maxSpeed:26 },
+  { color:0xffee00, type:'yellow', wx:-50,  wz: 180, heading:1.5,       maxSpeed:11 },
 ];
 const aiCars = aiDefs.map(d => ({
   ...d, mesh: makeCar(d.color), speed: 0,
@@ -838,17 +1039,27 @@ for (const c of aiCars) c.mesh.position.set(c.wx, 0, c.wz);
 
 const activeParticles = [];
 
-function spawnExplosion(x, z) {
-  const cols = [0xff4400,0xffaa00,0xffff00,0xff6600,0xff2200];
-  for (let i=0;i<14;i++) {
-    const m = new THREE.Mesh(
-      new THREE.SphereGeometry(0.3+Math.random()*0.45, 5, 4),
+function spawnExplosion(x, z) { // blue car: big fiery boom
+  const cols=[0xff4400,0xffaa00,0xffff00,0xff6600,0xff2200];
+  for (let i=0;i<18;i++) {
+    const m=new THREE.Mesh(new THREE.SphereGeometry(0.4+Math.random()*0.6,5,4),
       new THREE.MeshLambertMaterial({color:cols[Math.floor(Math.random()*cols.length)]}));
-    const a = Math.random()*Math.PI*2;
-    const spd = 6+Math.random()*12;
-    m.position.set(x, 0.5, z);
-    m.userData.vx = Math.cos(a)*spd; m.userData.vy = 3+Math.random()*9;
-    m.userData.vz = Math.sin(a)*spd; m.userData.life = 1.8;
+    const a=Math.random()*Math.PI*2, spd=8+Math.random()*16;
+    m.position.set(x,0.5,z);
+    m.userData.vx=Math.cos(a)*spd; m.userData.vy=4+Math.random()*12;
+    m.userData.vz=Math.sin(a)*spd; m.userData.life=2.2;
+    scene.add(m); activeParticles.push(m);
+  }
+}
+function spawnGreenExplosion(x, z) { // green car: leafy pop puff
+  const cols=[0x44ff44,0xaaff44,0x88ee22,0xffff44,0x22cc44];
+  for (let i=0;i<12;i++) {
+    const m=new THREE.Mesh(new THREE.SphereGeometry(0.2+Math.random()*0.3,5,4),
+      new THREE.MeshLambertMaterial({color:cols[Math.floor(Math.random()*cols.length)]}));
+    const a=Math.random()*Math.PI*2, spd=5+Math.random()*10;
+    m.position.set(x,0.5,z);
+    m.userData.vx=Math.cos(a)*spd; m.userData.vy=6+Math.random()*8;
+    m.userData.vz=Math.sin(a)*spd; m.userData.life=1.4;
     scene.add(m); activeParticles.push(m);
   }
 }
@@ -884,12 +1095,12 @@ function updateAICars(dt, px, pz) {
 
     if (car.type === 'green') {
       if (dist < 5) {
-        // Caught! Explode like blue car
-        car.exploding = true; car.explodeTimer = 3.2;
+        car.exploding = true; car.explodeTimer = 2.8;
         car.mesh.visible = false;
-        spawnExplosion(car.wx, car.wz);
-        beep(120, 0.4, 'sawtooth', 0.1);
-        setTimeout(() => beep(80, 0.5, 'sawtooth', 0.08), 70);
+        spawnGreenExplosion(car.wx, car.wz);
+        beep(440, 0.15, 'sine', 0.12); // high-pitched pop
+        setTimeout(() => beep(660, 0.12, 'sine', 0.08), 80);
+        setTimeout(() => beep(880, 0.1, 'sine', 0.05), 150);
       } else if (dist < 90) {
         steerToward(car, car.wx - dx, car.wz - dz, 2.2, dt); // away
         car.speed = Math.min(car.speed + 16*dt, car.maxSpeed);
@@ -928,11 +1139,11 @@ function updateAICars(dt, px, pz) {
         car.orbitTimer += dt;
         if (car.orbitTimer > 20) {
           car.orbitActive = false;
-          car.exploding = true; car.explodeTimer = 3.2;
+          car.exploding = true; car.explodeTimer = 2.8;
           car.mesh.visible = false;
-          spawnExplosion(car.wx, car.wz);
-          beep(200, 0.3, 'sine', 0.08);
-          setTimeout(() => beep(100, 0.5, 'sawtooth', 0.07), 60);
+          spawnGreenExplosion(car.wx, car.wz);
+          beep(550, 0.18, 'sine', 0.1);
+          setTimeout(() => beep(330, 0.25, 'sine', 0.07), 100);
         } else {
           car.speed = Math.min(car.speed + 9*dt, car.maxSpeed);
           const circ = (car.speed / Math.max(car.orbitRadius, 1));
@@ -948,6 +1159,25 @@ function updateAICars(dt, px, pz) {
         car.speed += (car.maxSpeed*0.28 - car.speed)*1.5*dt;
         if (dist > 450) respawnNearPlayer(car, px, pz, 60, 120);
       }
+
+    } else if (car.type === 'orange') {
+      // Erratic zigzag — random direction bursts
+      car.wanderTimer -= dt;
+      if (car.wanderTimer <= 0) {
+        car.wanderHeading = car.heading + (Math.random()-0.5)*Math.PI*1.8;
+        car.wanderTimer = 0.35 + Math.random()*0.65;
+      }
+      steerToward(car, car.wx+Math.sin(car.wanderHeading)*20, car.wz+Math.cos(car.wanderHeading)*20, 3.2, dt);
+      car.speed = Math.min(car.speed + 14*dt, car.maxSpeed);
+      if (dist > 400) respawnNearPlayer(car, px, pz, 60, 120);
+
+    } else if (car.type === 'yellow') {
+      // Peaceful slow cruiser
+      car.wanderTimer -= dt;
+      if (car.wanderTimer <= 0) { car.wanderHeading=Math.random()*Math.PI*2; car.wanderTimer=5+Math.random()*7; }
+      steerToward(car, car.wx+Math.sin(car.wanderHeading)*15, car.wz+Math.cos(car.wanderHeading)*15, 0.7, dt);
+      car.speed += (car.maxSpeed*0.75 - car.speed)*0.9*dt;
+      if (dist > 400) respawnNearPlayer(car, px, pz, 60, 120);
     }
 
     car.wx += Math.sin(car.heading)*car.speed*dt;
@@ -1023,13 +1253,14 @@ document.addEventListener('keydown', e => {
     cruise = !cruise; keys.gas = cruise;
     startGame();
   }
-  if (e.code==='Escape' && gameStarted) {
-    // Teleport back to start
+  if (e.code==='Escape') {
     player.wx=0; player.wz=0; player.heading=0; player.speed=0;
     player.mesh.position.set(0,0,0); player.mesh.rotation.y=0;
     cruise=false; keys.gas=false; keys.left=false; keys.right=false;
     gearKnobEl.classList.remove('cruise'); gearKnobEl.textContent='▲';
     camera.position.set(0,7.5,-16);
+    gameStarted=false;
+    document.getElementById('title-screen').style.display='';
   }
 });
 document.addEventListener('keyup', e => {
@@ -1087,25 +1318,117 @@ function updateCamera(wx, wz, heading, dt) {
   camera.lookAt(wx + Math.sin(heading)*6, 1.2, wz + Math.cos(heading)*6);
 }
 
+// ─── PLANE ──────────────────────────────────────────────────────
+function makePlaneMesh() {
+  const g=new THREE.Group();
+  const bm=new THREE.MeshLambertMaterial({color:0xdde8ff});
+  const wm=new THREE.MeshLambertMaterial({color:0xccddff});
+  // Fuselage
+  const fus=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.45,8,8),bm);
+  fus.rotation.z=Math.PI/2; g.add(fus);
+  // Nose cone
+  const nose=new THREE.Mesh(new THREE.ConeGeometry(0.55,1.4,8),bm);
+  nose.rotation.z=-Math.PI/2; nose.position.x=4.5; g.add(nose);
+  // Wings
+  const wing=new THREE.Mesh(new THREE.BoxGeometry(13,0.18,2.8),wm);
+  g.add(wing);
+  // Tail fin
+  const fin=new THREE.Mesh(new THREE.BoxGeometry(0.15,2.0,2.2),wm);
+  fin.position.set(-4,0.8,0); g.add(fin);
+  const stab=new THREE.Mesh(new THREE.BoxGeometry(4.5,0.14,1.2),wm);
+  stab.position.set(-4,0.3,0); g.add(stab);
+  // Engines
+  for (const s of [-1,1]) {
+    const eng=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.38,1.2,8),
+      new THREE.MeshLambertMaterial({color:0x888888}));
+    eng.rotation.z=Math.PI/2; eng.position.set(0.5,-0.45,s*3.2); g.add(eng);
+  }
+  // Cockpit
+  const cock=new THREE.Mesh(new THREE.SphereGeometry(0.48,7,5),
+    new THREE.MeshLambertMaterial({color:0x99ddff,transparent:true,opacity:0.65}));
+  cock.scale.set(0.65,0.7,1.2); cock.position.set(2.8,0.38,0); g.add(cock);
+  scene.add(g); return g;
+}
+const plane={
+  mesh:makePlaneMesh(), state:'waiting',
+  wx:0, wz:0, wy:0.6, heading:0, speed:0,
+  waitTimer:8+Math.random()*15, roadDir:0, roadEndX:0, roadEndZ:0,
+};
+plane.mesh.visible=false;
+
+function updatePlane(dt, px, pz) {
+  const p=plane;
+  if (p.state==='waiting') {
+    p.waitTimer-=dt;
+    if (p.waitTimer<=0) {
+      const r=ROADS[Math.floor(Math.random()*ROADS.length)];
+      const fx=Math.sin(r.dir), fz=Math.cos(r.dir);
+      p.wx=r.x-fx*r.len*0.48; p.wz=r.z-fz*r.len*0.48;
+      p.wy=0.6; p.heading=r.dir; p.speed=0;
+      p.roadDir=r.dir;
+      p.roadEndX=r.x+fx*r.len*0.48; p.roadEndZ=r.z+fz*r.len*0.48;
+      p.mesh.visible=true; p.mesh.rotation.set(0,0,0);
+      p.state='taxiing';
+    }
+  } else if (p.state==='taxiing') {
+    p.speed=Math.min(p.speed+9*dt, 24);
+    p.wx+=Math.sin(p.heading)*p.speed*dt;
+    p.wz+=Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx,p.wy,p.wz);
+    p.mesh.rotation.y=p.heading;
+    const dx=p.roadEndX-p.wx, dz=p.roadEndZ-p.wz;
+    if (dx*dx+dz*dz<25*25 || p.speed>=22) p.state='climbing';
+  } else if (p.state==='climbing') {
+    p.speed=Math.min(p.speed+6*dt,55);
+    p.wy+=14*dt;
+    p.wx+=Math.sin(p.heading)*p.speed*dt;
+    p.wz+=Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx,p.wy,p.wz);
+    p.mesh.rotation.y=p.heading;
+    p.mesh.rotation.z=-0.2; // bank
+    p.mesh.rotation.x=0.18; // nose up
+    if (p.wy>90) p.state='flying';
+  } else if (p.state==='flying') {
+    p.heading+=0.22*dt;
+    p.wx+=Math.sin(p.heading)*p.speed*dt;
+    p.wz+=Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx,p.wy,p.wz);
+    p.mesh.rotation.y=p.heading; p.mesh.rotation.x=0; p.mesh.rotation.z=0;
+    // Disappear when far or after ~20s
+    const dx=p.wx-px,dz=p.wz-pz;
+    if (dx*dx+dz*dz>700*700) {
+      p.mesh.visible=false; p.state='waiting'; p.waitTimer=12+Math.random()*18;
+    }
+  }
+}
+
 // ─── CAR TRACKS ─────────────────────────────────────────────────
-const TRACK_INTERVAL = 0.14, TRACK_LIFE = 9, TRACK_MAX = 150;
+const TRACK_INTERVAL = 0.13, TRACK_LIFE = 9, TRACK_MAX = 200;
 const trackMeshes = [];
 let trackHead = 0, trackTimer = 0;
 {
-  const geo = new THREE.PlaneGeometry(0.28, 1.9);
+  const geo = new THREE.PlaneGeometry(0.24, 1.6);
   for (let i = 0; i < TRACK_MAX; i++) {
     const m = new THREE.Mesh(geo,
       new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0, depthWrite: false }));
-    m.position.y = 0.012; m.visible = false; m.userData.life = 0;
+    m.position.y = 0.07; m.visible = false; m.userData.life = 0;
     scene.add(m); trackMeshes.push(m);
   }
 }
 function stampTrack(wx, wz, heading) {
-  const px = Math.cos(heading), pz = -Math.sin(heading);
-  for (const s of [-1, 1]) {
+  const fwdX = Math.sin(heading), fwdZ = Math.cos(heading);
+  const rgtX = Math.cos(heading), rgtZ = -Math.sin(heading);
+  // 4 wheel positions: front-left, front-right, rear-left, rear-right
+  const wheels = [
+    [fwdX*1.5 - rgtX*1.2, fwdZ*1.5 - rgtZ*1.2],
+    [fwdX*1.5 + rgtX*1.2, fwdZ*1.5 + rgtZ*1.2],
+    [-fwdX*1.5 - rgtX*1.2, -fwdZ*1.5 - rgtZ*1.2],
+    [-fwdX*1.5 + rgtX*1.2, -fwdZ*1.5 + rgtZ*1.2],
+  ];
+  for (const [ox, oz] of wheels) {
     const m = trackMeshes[trackHead % TRACK_MAX]; trackHead++;
-    m.position.set(wx + px*s*0.9, 0.012, wz + pz*s*0.9);
-    m.rotation.set(-Math.PI/2, heading, 0);
+    m.position.set(wx + ox, 0.07, wz + oz);
+    m.rotation.set(-Math.PI/2, 0, heading); // rotation.z around local Z = world Y ✓
     m.material.opacity = 0.55;
     m.userData.life = TRACK_LIFE; m.visible = true;
   }
@@ -1145,6 +1468,7 @@ function update(dt) {
   updateAICars(dt, player.wx, player.wz);
   updateCamera(player.wx, player.wz, player.heading, dt);
   updateClouds(dt, player.wx, player.wz);
+  updatePlane(dt, player.wx, player.wz);
   updateTracks(dt, player.wx, player.wz, player.heading, player.speed);
   updateEngine(player.speed, player.maxSpeed);
 }
