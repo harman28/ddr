@@ -431,7 +431,7 @@ function buildDentalClinic() {
   const finishPos = trackCurve.getPointAt(FINISH_T);
   const finishTan = trackCurve.getTangentAt(FINISH_T);
   // Place directly ahead of finish line so it's right in front when you cross
-  const AHEAD = 42;
+  const AHEAD = 90;
   const bx = finishPos.x + finishTan.x * AHEAD;
   const bz = finishPos.z + finishTan.z * AHEAD;
 
@@ -650,11 +650,12 @@ const CAR_DEFS = [
   { color: 0x2266ff, name: 'BLUE',   isPlayer: false, maxSpeed: 29 },
   { color: 0xffcc00, name: 'YELLOW', isPlayer: false, maxSpeed: 29 },
   { color: 0x22cc44, name: 'GREEN',  isPlayer: false, maxSpeed: 29 },
+  { color: 0xff8800, name: 'ORANGE', isPlayer: false, maxSpeed: 29 },
 ];
 
-// Starting grid: Red front-center, Blue front-left, Yellow back-right, Green back-left
-const START_T      = [0.018, 0.012, 0.006, 0.006];
-const LANE_OFFSETS = [0, -3.5, 3.5, -3.5];
+// Starting grid: Red front-center, then 2 mid rows behind
+const START_T      = [0.022, 0.014, 0.014, 0.006, 0.006];
+const LANE_OFFSETS = [0, -3.5, 3.5, -3.5, 3.5];
 
 const cars = CAR_DEFS.map((def, i) => {
   const mesh = makeCar(def.color);
@@ -706,13 +707,22 @@ function resetCars() {
 const keys = { left: false, right: false, gas: false };
 let firstInput = false;
 
-function onGas() { keys.gas = true; if (!firstInput) { firstInput = true; onFirstInput(); } }
+function onGas() {
+  keys.gas = true;
+  getACtx(); // ensure AudioContext is created & resumed on every user gesture (mobile fix)
+  if (!firstInput) { firstInput = true; onFirstInput(); }
+}
 function offGas() { keys.gas = false; }
 
 document.addEventListener('keydown', e => {
   if (e.code === 'ArrowLeft')  { keys.left = true; }
   if (e.code === 'ArrowRight') { keys.right = true; }
   if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); onGas(); }
+  if (e.code === 'Escape' && (state === 'racing' || state === 'finishing')) {
+    if (state === 'racing') stopEngine();
+    state = 'finishing';
+    if (!standingsVisible) showStandings();
+  }
 });
 document.addEventListener('keyup', e => {
   if (e.code === 'ArrowLeft')  keys.left  = false;
@@ -741,6 +751,8 @@ let engOsc = null, engGain = null, engFilter = null;
 
 function getACtx() {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  // Mobile browsers suspend AudioContext until resumed inside a user gesture
+  if (actx.state === 'suspended') actx.resume().catch(() => {});
   return actx;
 }
 
@@ -914,21 +926,22 @@ function updateStandingsUI() {
     if (a.finished) return -1; if (b.finished) return 1;
     return b.t - a.t;
   });
-  const medals = ['1st', '2nd', '3rd', '4th'];
-  const emojis = { RED: '&#128308;', BLUE: '&#128309;', YELLOW: '&#128993;', GREEN: '&#128994;' };
-  EL('standings-list').innerHTML = sorted.map((c, i) =>
-    `<div>${medals[i]} &nbsp; ${emojis[c.name]} ${c.name} &nbsp;&mdash;&nbsp; ${c.finished ? c.finishTime.toFixed(2)+'s' : '&#9203; racing...'}</div>`
-  ).join('');
+  const medals = ['1st', '2nd', '3rd', '4th', '5th'];
+  const emojis = { RED: '&#128308;', BLUE: '&#128309;', YELLOW: '&#128993;', GREEN: '&#128994;', ORANGE: '&#128992;' };
+  EL('standings-list').innerHTML = sorted.map((c, i) => {
+    const status = c.finished ? c.finishTime.toFixed(2)+'s'
+                 : state === 'finished' ? '&mdash;'
+                 : '&#9203; racing...';
+    return `<div>${medals[i]} &nbsp; ${emojis[c.name]} ${c.name} &nbsp;&mdash;&nbsp; ${status}</div>`;
+  }).join('');
 }
 
 function showStandings() {
-  // Keep state as 'finishing' so AI cars continue — will flip to 'finished' when all done
-  setTimeout(() => {
-    playFanfare(); startConfetti();
-    standingsVisible = true;
-    updateStandingsUI();
-    EL('standings').style.display = 'block';
-  }, 1200);
+  // Show immediately — no delay
+  playFanfare(); startConfetti();
+  standingsVisible = true;
+  updateStandingsUI();
+  EL('standings').style.display = 'block';
 }
 
 // ─── CAMERA STATE ────────────────────────────────────────────
@@ -1056,7 +1069,10 @@ function update(dt) {
       } else if (standingsVisible) {
         updateStandingsUI();
       }
-      if (finishCount >= cars.length) state = 'finished';
+      if (finishCount >= cars.length - 1) {
+        state = 'finished';
+        if (standingsVisible) updateStandingsUI(); // final update to mark last car as —
+      }
     }
   });
 
