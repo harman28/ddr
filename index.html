@@ -56,12 +56,20 @@ canvas { display: block; }
 
 #standings {
   display: none;
-  background: rgba(0,0,20,0.93);
+  position: fixed;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  background: rgba(0,0,20,0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 4px solid #FFD700;
   border-radius: 18px;
-  padding: 28px 48px 32px;
+  padding: 20px 36px 24px;
   text-align: center;
   pointer-events: all;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 #standings h2 {
   font-size: clamp(22px, 4.5vw, 46px);
@@ -718,10 +726,18 @@ document.addEventListener('keydown', e => {
   if (e.code === 'ArrowLeft')  { keys.left = true; }
   if (e.code === 'ArrowRight') { keys.right = true; }
   if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); onGas(); }
-  if (e.code === 'Escape' && (state === 'racing' || state === 'finishing')) {
-    if (state === 'racing') stopEngine();
-    state = 'finishing';
-    if (!standingsVisible) showStandings();
+  if (e.code === 'Escape') {
+    if (state === 'racing' || state === 'finishing') {
+      if (state === 'racing') stopEngine();
+      state = 'finished';
+      if (!standingsVisible) showStandings();
+    } else if (state === 'finished') {
+      restartGame();
+    }
+  }
+  if (e.code === 'Space' && state === 'finished') {
+    e.preventDefault();
+    restartGame();
   }
 });
 document.addEventListener('keyup', e => {
@@ -1024,16 +1040,24 @@ function update(dt) {
   const forwardDot = Math.max(0, hx * tTan.x + hz * tTan.z);
   player.t += forwardDot * player.speed * dt / TRACK_LEN;
 
-  // Off-road drag: generous — only fires well outside the road edge
-  const trackPt = trackCurve.getPointAt(Math.min(player.t, 0.9999));
-  const dxOff = player.wx - trackPt.x, dzOff = player.wz - trackPt.z;
-  if (dxOff * dxOff + dzOff * dzOff > ROAD_W * ROAD_W * 0.65)
+  // Off-road drag: find nearest track point by sampling a window around player.t
+  // (player.t can drift ahead of actual position through turns, so single-point check gives false positives)
+  let nearestDistSq = Infinity;
+  const tSearch = Math.min(player.t, 0.9999);
+  for (let dt2 = -0.04; dt2 <= 0.04; dt2 += 0.005) {
+    const s = Math.max(0, Math.min(0.9999, tSearch + dt2));
+    const pt = trackCurve.getPointAt(s);
+    const d2 = (player.wx - pt.x) ** 2 + (player.wz - pt.z) ** 2;
+    if (d2 < nearestDistSq) nearestDistSq = d2;
+  }
+  if (nearestDistSq > ROAD_W * ROAD_W * 0.65)
     player.speed *= (1 - 1.5 * dt);
 
   // AI cars — getPointAt gives uniform arc-length so no turn slowdown
   cars.forEach((car, i) => {
     if (i === 0 || car.finished) return;
-    const targetSpeed = car.maxSpeed * (0.84 + 0.16 * Math.sin(raceTime * 0.25 + i * 1.3));
+    const rivalBoost = car.t < player.t ? 1.15 : 1.0;
+    const targetSpeed = car.maxSpeed * rivalBoost * (0.84 + 0.16 * Math.sin(raceTime * 0.25 + i * 1.3));
     car.speed += (targetSpeed - car.speed) * 2.2 * dt;
     car.t += (car.speed * dt) / TRACK_LEN;
     car.lanePos *= (1 - dt * 1.8);
