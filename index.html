@@ -890,6 +890,7 @@ function onFirstInput() {
 
 function restartGame() {
   state = 'idle'; raceTime = 0; finishCount = 0; firstInput = false;
+  standingsVisible = false;
   keys.left = keys.right = keys.gas = false;
   camLean = 0;
   resetCars();
@@ -905,22 +906,29 @@ function restartGame() {
   EL('go-text').style.display    = 'none';
 }
 
+let standingsVisible = false;
+
+function updateStandingsUI() {
+  const sorted = [...cars].sort((a, b) => {
+    if (a.finished && b.finished) return a.finishTime - b.finishTime;
+    if (a.finished) return -1; if (b.finished) return 1;
+    return b.t - a.t;
+  });
+  const medals = ['1st', '2nd', '3rd', '4th'];
+  const emojis = { RED: '&#128308;', BLUE: '&#128309;', YELLOW: '&#128993;', GREEN: '&#128994;' };
+  EL('standings-list').innerHTML = sorted.map((c, i) =>
+    `<div>${medals[i]} &nbsp; ${emojis[c.name]} ${c.name} &nbsp;&mdash;&nbsp; ${c.finished ? c.finishTime.toFixed(2)+'s' : '&#9203; racing...'}</div>`
+  ).join('');
+}
+
 function showStandings() {
-  state = 'finished';
+  // Keep state as 'finishing' so AI cars continue — will flip to 'finished' when all done
   setTimeout(() => {
     playFanfare(); startConfetti();
-    const sorted = [...cars].sort((a, b) => {
-      if (a.finished && b.finished) return a.finishTime - b.finishTime;
-      if (a.finished) return -1; if (b.finished) return 1;
-      return b.t - a.t;
-    });
-    const medals  = ['1st', '2nd', '3rd', '4th'];
-    const emojis  = { RED: '&#128308;', BLUE: '&#128309;', YELLOW: '&#128993;', GREEN: '&#128994;' };
-    EL('standings-list').innerHTML = sorted.map((c, i) =>
-      `<div>${medals[i]} &nbsp; ${emojis[c.name]} ${c.name} &nbsp;&mdash;&nbsp; ${c.finished ? c.finishTime.toFixed(2)+'s' : 'DNF'}</div>`
-    ).join('');
+    standingsVisible = true;
+    updateStandingsUI();
     EL('standings').style.display = 'block';
-  }, 1800);
+  }, 1200);
 }
 
 // ─── CAMERA STATE ────────────────────────────────────────────
@@ -984,7 +992,7 @@ function update(dt) {
 
   if (state !== 'racing' && state !== 'finishing') return;
 
-  if (state === 'racing') raceTime += dt;
+  if (state === 'racing' || state === 'finishing') raceTime += dt;
 
   const player = cars[0];
 
@@ -1008,9 +1016,11 @@ function update(dt) {
   const offRoad = Math.abs(player.lanePos) > ROAD_W * 0.48;
   if (offRoad) player.speed *= (1 - 2.5 * dt);
 
-  // Advance player
-  player.t += (player.speed * dt) / TRACK_LEN;
-  player.lanePos += player.steerAng * player.speed * dt;
+  // Advance player — move in the direction the car is actually facing (pivot steering)
+  const fwdDist = Math.cos(player.steerAng) * player.speed * dt;
+  const latDist  = Math.sin(player.steerAng) * player.speed * dt;
+  player.t += fwdDist / TRACK_LEN;
+  player.lanePos += latDist;
   player.lanePos = Math.max(-ROAD_W * 0.52, Math.min(ROAD_W * 0.52, player.lanePos));
 
   // AI cars
@@ -1033,7 +1043,7 @@ function update(dt) {
 
     car.mesh.position.copy(pos).addScaledVector(right, car.lanePos);
     car.mesh.position.y = 0;
-    const steerVis = car.isPlayer ? car.steerAng * 0.35 : 0;
+    const steerVis = car.isPlayer ? car.steerAng * 0.7 : 0;
     car.mesh.rotation.y = Math.atan2(tan.x, tan.z) + steerVis;
   });
 
@@ -1047,7 +1057,10 @@ function update(dt) {
         stopEngine();
         state = 'finishing';
         showStandings();
+      } else if (standingsVisible) {
+        updateStandingsUI();
       }
+      if (finishCount >= cars.length) state = 'finished';
     }
   });
 
