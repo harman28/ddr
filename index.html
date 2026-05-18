@@ -1128,7 +1128,7 @@ function updateAICars(dt, px, pz) {
         respawnNearPlayer(car, px, pz, 70, 140);
       }
 
-    } else { // white
+    } else if (car.type === 'white') {
       if (!car.orbitActive && dist < 70) {
         car.orbitActive = true; car.orbitTimer = 0;
         car.orbitRadius = 18 + Math.random()*10;
