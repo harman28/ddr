@@ -155,7 +155,7 @@ canvas { display: block; }
     <div class="mbtn" id="btn-left">&#9664;</div>
     <div class="mbtn" id="btn-right">&#9654;</div>
   </div>
-  <div class="mbtn" id="accel-btn">GAS!</div>
+  <div class="mbtn" id="accel-btn">&#9650;</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -994,7 +994,8 @@ function update(dt) {
     player.speed = Math.max(player.speed - BRAKE_RATE * 0.4 * dt, 0);
   }
 
-  const steerIn = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
+  // Negate steerIn so screen-left = car turns left from driver's POV
+  const steerIn = (keys.right ? -1 : 0) + (keys.left ? 1 : 0);
 
   // World-coordinate steering: heading rotates, car drives in that direction
   player.heading += steerIn * STEER_RATE * dt;
@@ -1004,14 +1005,17 @@ function update(dt) {
   player.wx += Math.sin(player.heading) * player.speed * dt;
   player.wz += Math.cos(player.heading) * player.speed * dt;
 
-  // Advance t for finish detection (arc-length approximate)
-  player.t += player.speed * dt / TRACK_LEN;
+  // Advance t based on actual forward progress along track (dot product method)
+  const tTan = trackCurve.getTangentAt(Math.min(player.t, 0.9999));
+  const hx = Math.sin(player.heading), hz = Math.cos(player.heading);
+  const forwardDot = Math.max(0, hx * tTan.x + hz * tTan.z);
+  player.t += forwardDot * player.speed * dt / TRACK_LEN;
 
-  // Off-road drag: distance from nearest track point
-  const trackPt = trackCurve.getPointAt(Math.min(player.t, 0.999));
+  // Off-road drag: generous — only fires well outside the road edge
+  const trackPt = trackCurve.getPointAt(Math.min(player.t, 0.9999));
   const dxOff = player.wx - trackPt.x, dzOff = player.wz - trackPt.z;
-  if (Math.sqrt(dxOff * dxOff + dzOff * dzOff) > ROAD_W * 0.55)
-    player.speed *= (1 - 2.5 * dt);
+  if (dxOff * dxOff + dzOff * dzOff > ROAD_W * ROAD_W * 0.65)
+    player.speed *= (1 - 1.5 * dt);
 
   // AI cars — getPointAt gives uniform arc-length so no turn slowdown
   cars.forEach((car, i) => {
