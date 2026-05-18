@@ -70,6 +70,11 @@ canvas { display:block; }
   #mobile-controls { display:flex; }
   #controls-hint   { display:none; }
 }
+#coords {
+  position:fixed; bottom:8px; left:12px;
+  color:rgba(255,255,255,0.38); font-size:11px; font-family:monospace;
+  text-shadow:1px 1px 2px #000; pointer-events:none; z-index:5;
+}
 </style>
 </head>
 <body>
@@ -88,6 +93,7 @@ canvas { display:block; }
   <div id="gear-track"><div id="gear-knob">&#9650;</div></div>
 </div>
 <div id="controls-hint">&#8593; Go &nbsp;|&nbsp; &#8595; Reverse &nbsp;|&nbsp; SPACE: Cruise &nbsp;|&nbsp; &#8592;&#8594;: Steer</div>
+<div id="coords"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
@@ -375,9 +381,11 @@ const player = { mesh: makeCar(0xff2020), wx: 0, wz: 0, heading: 0, speed: 0, ma
 
 // ─── WORLD OBJECT HELPERS ───────────────────────────────────────
 const allWorldObjects = [];
+// Terrain patches sit at y=0.01–0.038; lift all objects above them so nothing gets buried.
+const GND_Y = 0.05;
 
 function worldObj(group, wx, wz, type, opts) {
-  group.position.set(wx, 0, wz);
+  group.position.set(wx, GND_Y, wz);
   scene.add(group);
   const o = Object.assign({
     group, wx, wz, type,
@@ -1192,7 +1200,7 @@ function updateWorldObjects(dt, px, pz) {
         if (spd > 1.2) { o.vy = spd * 0.45; if (o.spinV) o.spinV *= 0.5; }
         else { o.vy = 0; o.vx = 0; o.vz = 0; o.spinV = 0; o.isHopping = false; }
       }
-      o.group.position.set(o.wx, o.hopY, o.wz);
+      o.group.position.set(o.wx, o.hopY + GND_Y, o.wz);
     }
 
     // Cow flee — big panicked jump then sprint
@@ -1209,8 +1217,8 @@ function updateWorldObjects(dt, px, pz) {
         o.fleeVx *= Math.pow(0.90, dt*60); o.fleeVz *= Math.pow(0.90, dt*60);
         o.cowJumpV = (o.cowJumpV||0) - 22*dt;
         o.cowJumpY = Math.max(0, (o.cowJumpY||0) + o.cowJumpV*dt);
-        o.group.position.set(o.wx, o.cowJumpY, o.wz);
-        if (Math.abs(o.fleeVx)+Math.abs(o.fleeVz) < 0.3) { o.fleeing=false; o.group.position.y=0; }
+        o.group.position.set(o.wx, o.cowJumpY + GND_Y, o.wz);
+        if (Math.abs(o.fleeVx)+Math.abs(o.fleeVz) < 0.3) { o.fleeing=false; o.group.position.y=GND_Y; }
       }
     }
 
@@ -1229,7 +1237,7 @@ function updateWorldObjects(dt, px, pz) {
         o.hopY = Math.max(0, o.hopY + o.flyVy*dt); o.wz += o.flyVz*dt;
         o.flyVy -= 5 * dt;
         if (o.flyTimer <= 0 || o.hopY <= 0) { o.hopY = 0; o.flyingUp = false; }
-        o.group.position.set(o.wx, o.hopY, o.wz);
+        o.group.position.set(o.wx, o.hopY + GND_Y, o.wz);
       }
     }
 
@@ -1273,7 +1281,7 @@ function updateWorldObjects(dt, px, pz) {
       if (o.fleeing) {
         o.wx+=o.fleeVx*dt; o.wz+=o.fleeVz*dt;
         o.fleeVx*=Math.pow(0.88,dt*60); o.fleeVz*=Math.pow(0.88,dt*60);
-        o.group.position.set(o.wx,0,o.wz);
+        o.group.position.set(o.wx,GND_Y,o.wz);
         if (Math.abs(o.fleeVx)+Math.abs(o.fleeVz)<0.4) o.fleeing=false;
       }
     }
@@ -1848,6 +1856,7 @@ function loop(now) {
   last = now;
   update(dt);
   renderer.render(scene, camera);
+  document.getElementById('coords').textContent = `x:${Math.round(player.wx)} z:${Math.round(player.wz)}`;
 }
 requestAnimationFrame(t=>{ last=t; requestAnimationFrame(loop); });
 </script>
