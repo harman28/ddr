@@ -420,11 +420,11 @@ function makeBillboard(x, z) {
   const tex = new THREE.CanvasTexture(cv);
   const signMat = new THREE.MeshBasicMaterial({map:tex, side:THREE.DoubleSide});
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(13,6.5), signMat);
-  sign.position.y=13.5; g.add(sign);
-  // Sign backing board
+  sign.position.set(0,13.5,0.2); g.add(sign);
+  // Sign backing board (behind the sign face)
   const board = new THREE.Mesh(new THREE.BoxGeometry(13.2,6.7,0.3),
     new THREE.MeshLambertMaterial({color:0xdddddd}));
-  board.position.y=13.5; g.add(board);
+  board.position.set(0,13.5,-0.1); g.add(board);
   // Two support poles
   for (const sx of [-5,5]) {
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.3,14,8),
@@ -468,7 +468,7 @@ function makeBoat(x, z) {
   flag.position.set(-0.4+0.45,6.5,0); g.add(flag);
 
   const angle = Math.random()*Math.PI*2;
-  const orbitR = 10 + Math.random()*10;
+  const orbitR = 3 + Math.random()*5;
   const o = worldObj(g, x, z, 'boat', {hopRadius:0, activationRadius:0,
     centerX:x, centerZ:z,
     orbitR:orbitR,
@@ -1078,7 +1078,7 @@ const OBJ_TYPES = [
   {fn:makeAmusementPark,w:2}, {fn:makeConstruction,w:3},
   {fn:makePark,   w:5},  {fn:makeSchool, w:3},  {fn:makeRocket, w:2},
   {fn:makeDuck,   w:6},  {fn:makeRabbit, w:7},
-  {fn:makeBillboard, w:3}, {fn:makeBoat, w:3},
+  {fn:makeBillboard, w:3},
 ];
 const OBJ_TOTAL = OBJ_TYPES.reduce((s,t)=>s+t.w, 0);
 
@@ -1685,6 +1685,37 @@ plane.mesh.visible=false;
 
 // Permanent sandwich boat at the lake
 allWorldObjects.push(makeSandwichBoat());
+
+// Lake directional signs — guides player from spawn → lake (southwest, heading ≈ -2.2 rad)
+(function addLakeSigns() {
+  function makeDirectionSign(wx, wz, label, faceHeading) {
+    const g = new THREE.Group();
+    const cv = document.createElement('canvas'); cv.width=256; cv.height=96;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle='#1a7a1a'; ctx.fillRect(0,0,256,96);
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=5; ctx.strokeRect(4,4,248,88);
+    ctx.fillStyle='#ffffff'; ctx.font='bold 44px Arial';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(label, 128, 48);
+    const mat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),side:THREE.DoubleSide});
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(5,1.9),mat);
+    face.position.set(0,5.1,0.06); g.add(face);
+    const backing=new THREE.Mesh(new THREE.BoxGeometry(5.1,2,0.18),
+      new THREE.MeshLambertMaterial({color:0x2a5a2a}));
+    backing.position.set(0,5.1,0); g.add(backing);
+    const post=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.13,5.2,6),
+      new THREE.MeshLambertMaterial({color:0x8B6914}));
+    post.position.set(0,2.6,0); g.add(post);
+    g.rotation.y = faceHeading;
+    g.position.set(wx, 0, wz); scene.add(g);
+  }
+  // Sign 1: right at spawn, facing southwest so player sees it immediately
+  // lake is at (-370,-270), heading to face that direction = atan2(-370,-270) ≈ -2.2 rad
+  // Sign faces player at spawn (heading=0 means player looks +Z), so sign faces -Z = Math.PI
+  makeDirectionSign(0, 18, '↙ LAKE', Math.PI);
+  // Sign 2: mid-way hint near (-150, -100)
+  makeDirectionSign(-150, -100, '↙ LAKE', Math.PI * 0.85);
+})();
 
 function updatePlane(dt, px, pz) {
   const p=plane;
