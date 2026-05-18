@@ -1699,7 +1699,8 @@ allWorldObjects.push(makeSandwichBoat());
     ctx.fillText(label, 128, 48);
     const mat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),side:THREE.DoubleSide});
     const face=new THREE.Mesh(new THREE.PlaneGeometry(5,1.9),mat);
-    face.position.set(0,5.1,0.06); g.add(face);
+    // z=0.15: must clear the backing box front face (box depth 0.18, front face at z=0.09)
+    face.position.set(0,5.1,0.15); g.add(face);
     const backing=new THREE.Mesh(new THREE.BoxGeometry(5.1,2,0.18),
       new THREE.MeshLambertMaterial({color:0x2a5a2a}));
     backing.position.set(0,5.1,0); g.add(backing);
@@ -1709,12 +1710,15 @@ allWorldObjects.push(makeSandwichBoat());
     g.rotation.y = faceHeading;
     g.position.set(wx, 0, wz); scene.add(g);
   }
-  // Sign 1: right at spawn, facing southwest so player sees it immediately
-  // lake is at (-370,-270), heading to face that direction = atan2(-370,-270) ≈ -2.2 rad
-  // Sign faces player at spawn (heading=0 means player looks +Z), so sign faces -Z = Math.PI
-  makeDirectionSign(0, 18, '↙ LAKE', Math.PI);
-  // Sign 2: mid-way hint near (-150, -100)
-  makeDirectionSign(-150, -100, '↙ LAKE', Math.PI * 0.85);
+  // Trail of signs from spawn → lake at (-370,-270).
+  // Each sign faces roughly toward the player approaching from northeast (faceHeading ≈ 0.94).
+  // Sign at spawn faces -Z (Math.PI) so it's readable when you first drive forward.
+  makeDirectionSign(  0,  18, '↙ LAKE', Math.PI);       // right in front at spawn
+  makeDirectionSign( -8,  -6, '↙ LAKE', 0.94);          // just behind spawn, first turn hint
+  makeDirectionSign(-60, -45, '↙ LAKE', 0.94);          // heading out
+  makeDirectionSign(-130,-95, '↙ LAKE', 0.94);          // mid-journey
+  makeDirectionSign(-210,-155,'↙ LAKE', 0.94);          // getting closer
+  makeDirectionSign(-295,-215,'↙ LAKE  almost there!', 0.94); // nearly there
 })();
 
 function updatePlane(dt, px, pz) {
