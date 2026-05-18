@@ -138,7 +138,7 @@ canvas { display: block; }
 
 <div id="ui">
   <div id="title-block">
-    <div id="title-main">DDR<br>DENTAL DRAG RACE</div>
+    <div id="title-main">VANSHU'S DDR<br>DENTAL DRAG RACE</div>
     <div id="title-sub">Press SPACE or click to start!</div>
   </div>
   <div id="countdown"></div>
@@ -304,8 +304,8 @@ function buildRoad() {
   }
 
   // Finish line
-  const fPos = trackCurve.getPoint(FINISH_T);
-  const fTan = trackCurve.getTangent(FINISH_T);
+  const fPos = trackCurve.getPointAt(FINISH_T);
+  const fTan = trackCurve.getTangentAt(FINISH_T);
   const fRight = new THREE.Vector3(-fTan.z, 0, fTan.x);
 
   const fc = document.createElement('canvas');
@@ -428,8 +428,8 @@ function buildTrees() {
 
 // ─── DENTAL CLINIC ───────────────────────────────────────────
 function buildDentalClinic() {
-  const finishPos = trackCurve.getPoint(FINISH_T);
-  const finishTan = trackCurve.getTangent(FINISH_T);
+  const finishPos = trackCurve.getPointAt(FINISH_T);
+  const finishTan = trackCurve.getTangentAt(FINISH_T);
   // Place directly ahead of finish line so it's right in front when you cross
   const AHEAD = 42;
   const bx = finishPos.x + finishTan.x * AHEAD;
@@ -652,9 +652,9 @@ const CAR_DEFS = [
   { color: 0x22cc44, name: 'GREEN',  isPlayer: false, maxSpeed: 29 },
 ];
 
-// Starting lane offsets and stagger
-const LANE_OFFSETS = [0, -3, 3, 0];
-const STAGGER_T   = [0, 0, -0.012, -0.022];
+// Starting grid: Red front-center, Blue front-left, Yellow back-right, Green back-left
+const START_T      = [0.018, 0.012, 0.006, 0.006];
+const LANE_OFFSETS = [0, -3.5, 3.5, -3.5];
 
 const cars = CAR_DEFS.map((def, i) => {
   const mesh = makeCar(def.color);
@@ -662,10 +662,11 @@ const cars = CAR_DEFS.map((def, i) => {
   return {
     mesh,
     ...def,
-    t: 0.01 + STAGGER_T[i],
+    t: START_T[i],
     speed: 0,
     lanePos: LANE_OFFSETS[i],
-    steerAng: 0,
+    // World-space position + heading (player only, set by positionCars)
+    wx: 0, wz: 0, heading: 0,
     finished: false,
     finishTime: null,
   };
@@ -673,23 +674,28 @@ const cars = CAR_DEFS.map((def, i) => {
 
 function positionCars() {
   cars.forEach((car, i) => {
-    const t = Math.max(0.005, car.t);
-    const pos = trackCurve.getPoint(t);
-    const tan = trackCurve.getTangent(t);
+    const t = Math.max(0.004, car.t);
+    const pos = trackCurve.getPointAt(t);
+    const tan = trackCurve.getTangentAt(t);
     const right = new THREE.Vector3(-tan.z, 0, tan.x);
     car.mesh.position.copy(pos).addScaledVector(right, car.lanePos);
     car.mesh.position.y = 0;
-    car.mesh.rotation.y = Math.atan2(tan.x, tan.z);
+    const angle = Math.atan2(tan.x, tan.z);
+    car.mesh.rotation.y = angle;
     car.mesh.rotation.z = 0;
+    if (car.isPlayer) {
+      car.wx = car.mesh.position.x;
+      car.wz = car.mesh.position.z;
+      car.heading = angle;
+    }
   });
 }
 
 function resetCars() {
   cars.forEach((car, i) => {
-    car.t = 0.01 + STAGGER_T[i];
+    car.t = START_T[i];
     car.speed = 0;
     car.lanePos = LANE_OFFSETS[i];
-    car.steerAng = 0;
     car.finished = false;
     car.finishTime = null;
   });
@@ -731,7 +737,7 @@ MBTN('restart-btn').addEventListener('click', restartGame);
 
 // ─── AUDIO ───────────────────────────────────────────────────
 let actx = null;
-let engOsc = null, engGain = null;
+let engOsc = null, engGain = null, engFilter = null;
 
 function getACtx() {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -769,24 +775,18 @@ function startEngine() {
   try {
     const ctx = getACtx();
     if (engOsc) return;
-
-    // Distortion shaper for engine rumble
-    const dist = ctx.createWaveShaper();
-    const c = new Float32Array(512);
-    for (let i = 0; i < 512; i++) {
-      const x = (i * 2) / 512 - 1;
-      c[i] = (Math.PI + 60) * x / (Math.PI + 60 * Math.abs(x));
-    }
-    dist.curve = c;
-
-    engOsc  = ctx.createOscillator();
-    engGain = ctx.createGain();
-    engOsc.connect(dist);
-    dist.connect(engGain);
+    engOsc    = ctx.createOscillator();
+    engFilter = ctx.createBiquadFilter();
+    engGain   = ctx.createGain();
+    engFilter.type = 'lowpass';
+    engFilter.frequency.value = 280;
+    engFilter.Q.value = 0.8;
+    engOsc.connect(engFilter);
+    engFilter.connect(engGain);
     engGain.connect(ctx.destination);
-    engOsc.type = 'sawtooth';
-    engOsc.frequency.value = 65;
-    engGain.gain.value = 0.012;
+    engOsc.type = 'triangle';
+    engOsc.frequency.value = 75;
+    engGain.gain.value = 0.04;
     engOsc.start();
   } catch(e) {}
 }
@@ -796,8 +796,8 @@ function updateEngine(speed, maxSpeed) {
   try {
     const ctx = getACtx();
     const r = speed / maxSpeed;
-    engOsc.frequency.setTargetAtTime(55 + r * 200, ctx.currentTime, 0.1);
-    engGain.gain.setTargetAtTime(0.006 + r * 0.028, ctx.currentTime, 0.1);
+    engOsc.frequency.setTargetAtTime(65 + r * 90, ctx.currentTime, 0.12);
+    engGain.gain.setTargetAtTime(0.022 + r * 0.03, ctx.currentTime, 0.12);
   } catch(e) {}
 }
 
@@ -807,7 +807,7 @@ function stopEngine() {
     engGain.gain.setTargetAtTime(0, actx.currentTime, 0.3);
     engOsc.stop(actx.currentTime + 0.5);
   } catch(e) {}
-  engOsc = engGain = null;
+  engOsc = engGain = engFilter = null;
 }
 
 function playFanfare() {
@@ -896,8 +896,8 @@ function restartGame() {
   resetCars();
   stopEngine(); stopConfetti();
   // Snap camera back to start
-  const rp = trackCurve.getPoint(0.01);
-  const rt = trackCurve.getTangent(0.01);
+  const rp = trackCurve.getPointAt(0.01);
+  const rt = trackCurve.getTangentAt(0.01);
   camera.position.set(rp.x - rt.x * 9, 3.8, rp.z - rt.z * 9);
   camera.lookAt(rp.x + rt.x * 7, 1.4, rp.z + rt.z * 7);
   EL('standings').style.display  = 'none';
@@ -937,34 +937,23 @@ const camTarget = new THREE.Vector3();
 const camLookAt = new THREE.Vector3();
 
 function updateCamera(player, dt) {
-  const t  = Math.min(player.t, 0.999);
-  const pos = player.mesh.position;
-  const tan = trackCurve.getTangent(t);
-
-  // Behind-and-above offset with lean
+  const hx = Math.sin(player.heading);
+  const hz = Math.cos(player.heading);
   const behind = 9, above = 3.8;
   camTarget.set(
-    pos.x - tan.x * behind + (-tan.z) * camLean * 2.5,
-    pos.y + above,
-    pos.z - tan.z * behind + ( tan.x) * camLean * 2.5
+    player.wx - hx * behind + (-hz) * camLean * 2.5,
+    above,
+    player.wz - hz * behind + ( hx) * camLean * 2.5
   );
   camera.position.lerp(camTarget, Math.min(1, 9 * dt));
-
-  // Look slightly ahead of car
-  camLookAt.set(
-    pos.x + tan.x * 7,
-    pos.y + 1.4,
-    pos.z + tan.z * 7
-  );
+  camLookAt.set(player.wx + hx * 7, 1.4, player.wz + hz * 7);
   camera.lookAt(camLookAt);
 }
 
 // ─── UPDATE ──────────────────────────────────────────────────
 const ACCEL_RATE  = 20;
 const BRAKE_RATE  = 28;
-const STEER_RATE  = 2.8;
-const MAX_STEER   = 0.42;
-const LAT_SPEED   = 9;
+const STEER_RATE  = 1.6;  // radians/sec for heading rotation
 
 function update(dt) {
   // Countdown phase
@@ -1006,45 +995,48 @@ function update(dt) {
   }
 
   const steerIn = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
-  player.steerAng += steerIn * STEER_RATE * dt;
-  player.steerAng = Math.max(-MAX_STEER, Math.min(MAX_STEER, player.steerAng));
-  if (steerIn === 0) player.steerAng *= (1 - 6 * dt);
 
+  // World-coordinate steering: heading rotates, car drives in that direction
+  player.heading += steerIn * STEER_RATE * dt;
   camLean += (steerIn * 0.14 - camLean) * 5 * dt;
 
-  // Off-road drag
-  const offRoad = Math.abs(player.lanePos) > ROAD_W * 0.48;
-  if (offRoad) player.speed *= (1 - 2.5 * dt);
+  // Move player in heading direction
+  player.wx += Math.sin(player.heading) * player.speed * dt;
+  player.wz += Math.cos(player.heading) * player.speed * dt;
 
-  // Advance player — move in the direction the car is actually facing (pivot steering)
-  const fwdDist = Math.cos(player.steerAng) * player.speed * dt;
-  const latDist  = Math.sin(player.steerAng) * player.speed * dt;
-  player.t += fwdDist / TRACK_LEN;
-  player.lanePos += latDist;
-  player.lanePos = Math.max(-ROAD_W * 0.52, Math.min(ROAD_W * 0.52, player.lanePos));
+  // Advance t for finish detection (arc-length approximate)
+  player.t += player.speed * dt / TRACK_LEN;
 
-  // AI cars
+  // Off-road drag: distance from nearest track point
+  const trackPt = trackCurve.getPointAt(Math.min(player.t, 0.999));
+  const dxOff = player.wx - trackPt.x, dzOff = player.wz - trackPt.z;
+  if (Math.sqrt(dxOff * dxOff + dzOff * dzOff) > ROAD_W * 0.55)
+    player.speed *= (1 - 2.5 * dt);
+
+  // AI cars — getPointAt gives uniform arc-length so no turn slowdown
   cars.forEach((car, i) => {
     if (i === 0 || car.finished) return;
-    // Gradual speed variation per car
-    const targetSpeed = car.maxSpeed * (0.82 + 0.18 * Math.sin(raceTime * 0.25 + i * 1.3));
+    const targetSpeed = car.maxSpeed * (0.84 + 0.16 * Math.sin(raceTime * 0.25 + i * 1.3));
     car.speed += (targetSpeed - car.speed) * 2.2 * dt;
     car.t += (car.speed * dt) / TRACK_LEN;
-    car.lanePos *= (1 - dt * 1.8); // drift back to center
+    car.lanePos *= (1 - dt * 1.8);
   });
 
   // Update mesh positions
   cars.forEach(car => {
     if (car.t > 1) car.t = 1;
-    const t = Math.min(car.t, 0.9999);
-    const pos = trackCurve.getPoint(t);
-    const tan = trackCurve.getTangent(t);
-    const right = new THREE.Vector3(-tan.z, 0, tan.x);
-
-    car.mesh.position.copy(pos).addScaledVector(right, car.lanePos);
-    car.mesh.position.y = 0;
-    const steerVis = car.isPlayer ? car.steerAng * 0.7 : 0;
-    car.mesh.rotation.y = Math.atan2(tan.x, tan.z) + steerVis;
+    if (car.isPlayer) {
+      car.mesh.position.set(car.wx, 0, car.wz);
+      car.mesh.rotation.y = car.heading;
+    } else {
+      const t = Math.min(car.t, 0.9999);
+      const pos = trackCurve.getPointAt(t);
+      const tan = trackCurve.getTangentAt(t);
+      const right = new THREE.Vector3(-tan.z, 0, tan.x);
+      car.mesh.position.copy(pos).addScaledVector(right, car.lanePos);
+      car.mesh.position.y = 0;
+      car.mesh.rotation.y = Math.atan2(tan.x, tan.z);
+    }
   });
 
   // Finish detection
@@ -1082,9 +1074,9 @@ buildMountains();
 buildTrees();
 resetCars();
 
-// Initial camera placement
-const initPos = trackCurve.getPoint(0.01);
-const initTan = trackCurve.getTangent(0.01);
+// Initial camera placement — use arc-length parameterization
+const initPos = trackCurve.getPointAt(0.01);
+const initTan = trackCurve.getTangentAt(0.01);
 camera.position.set(initPos.x - initTan.x * 9, 3.8, initPos.z - initTan.z * 9);
 camera.lookAt(initPos.x + initTan.x * 7, 1.4, initPos.z + initTan.z * 7);
 
