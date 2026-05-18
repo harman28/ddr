@@ -82,7 +82,7 @@ canvas { display:block; }
 
 <div id="title-screen">
   <div id="title-main">VANSHU'S<br>VROOM VROOM<br>WORLD</div>
-  <div id="title-sub">&#9650; or SPACE to drive!</div>
+  <div id="title-sub">Tap to start! &nbsp;|&nbsp; &#9650; or SPACE on keyboard</div>
 </div>
 
 <div id="mobile-controls">
@@ -1576,6 +1576,17 @@ function startGame() {
   document.getElementById('title-screen').style.display = 'none';
   getACtx(); startEngine();
 }
+
+// On mobile the title screen blocks all touches — tap anywhere on it to start
+document.getElementById('title-screen').addEventListener('touchstart', e => {
+  e.preventDefault();
+  startGame();
+  keys.gas = true;
+}, {passive:false});
+document.getElementById('title-screen').addEventListener('touchend', e => {
+  e.preventDefault();
+  keys.gas = false;
+}, {passive:false});
 
 document.addEventListener('keydown', e => {
   if (e.code==='ArrowLeft')  { keys.left=true; }
