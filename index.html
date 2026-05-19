@@ -180,10 +180,8 @@ const TERRAIN_ZONES = [
   { color: 0x5aad4e, x:  600, z: -300, w: 350, h: 300, r: 0.8 },
 ];
 TERRAIN_ZONES.forEach((t, i) => {
-  // polygonOffset pulls each zone in front of the previous — eliminates z-fighting even at grazing angles
   const m = new THREE.Mesh(new THREE.PlaneGeometry(t.w, t.h),
-    new THREE.MeshLambertMaterial({ color: t.color, polygonOffset: true,
-      polygonOffsetFactor: -(i + 1), polygonOffsetUnits: -(i + 1) }));
+    new THREE.MeshLambertMaterial({ color: t.color }));
   m.rotation.x = -Math.PI / 2; m.rotation.z = t.r;
   m.position.set(t.x, 0.01 + i * 0.002, t.z); scene.add(m);
 });
@@ -408,7 +406,7 @@ const player = { mesh: makeCar(0xff2020), wx: 0, wz: 0, heading: 0, speed: 0, ma
 // ─── WORLD OBJECT HELPERS ───────────────────────────────────────
 const allWorldObjects = [];
 // Terrain patches sit at y=0.01–0.038; lift all objects above them so nothing gets buried.
-const GND_Y = 0.12;
+const GND_Y = 0.5;
 
 function worldObj(group, wx, wz, type, opts) {
   group.position.set(wx, GND_Y, wz);
