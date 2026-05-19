@@ -396,6 +396,15 @@ function worldObj(group, wx, wz, type, opts) {
 }
 
 // ─── TEXT SPRITE HELPER ─────────────────────────────────────────
+function makeLabel(text) {
+  const cv=document.createElement('canvas'); cv.width=220; cv.height=52;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='rgba(0,0,0,0.52)'; ctx.fillRect(0,0,220,52);
+  ctx.fillStyle='#ffffff'; ctx.font='bold 26px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,110,27);
+  const mat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false});
+  const sp=new THREE.Sprite(mat); sp.scale.set(4,0.9,1); return sp;
+}
 function makeTextSprite(text, bg, fg) {
   const cv=document.createElement('canvas'); cv.width=256; cv.height=72;
   const ctx=cv.getContext('2d');
@@ -515,6 +524,7 @@ function makeBoat(x, z) {
     bobFreq: 0.6+Math.random()*0.5,
   });
   o.group.position.y = 0.06;
+  const lbl=makeLabel('BOAT'); lbl.position.set(0,8,0); g.add(lbl);
   return o;
 }
 
@@ -586,6 +596,7 @@ function makeSandwichBoat() {
       bobFreq:0.4,
     });
   o.group.position.y=0.08;
+  const lbl=makeLabel('SANDWICH BOAT'); lbl.position.set(0,13,0); g.add(lbl);
   return o;
 }
 
@@ -707,6 +718,7 @@ function makeCow(x, z) {
     ud.position.set(0,0.66,-0.28); ud.scale.y=0.55; g.add(ud);
   }
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('COW'); lbl.position.set(0,4,0); g.add(lbl);
   const o=worldObj(g,x,z,'cow',{hopRadius:16});
   o.fleeing=false; o.fleeVx=0; o.fleeVz=0; o.fleeSpeed=14;
   return o;
@@ -751,6 +763,7 @@ function makeBird(x, z) {
     foot.position.set(s*0.11,0.06,0.08); g.add(foot);
   }
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('BIRD'); lbl.position.set(0,3,0); g.add(lbl);
   const o=worldObj(g,x,z,'bird',{hopRadius:13});
   o.flyingUp=false; o.flyTimer=0; o.flyVx=0; o.flyVy=0; o.flyVz=0;
   return o;
@@ -775,6 +788,7 @@ function makeClinic(x, z) {
   const neon = new THREE.Mesh(new THREE.BoxGeometry(5,0.8,0.2),neonMat);
   neon.position.set(0,5.2,3.1); g.add(neon);
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('CLINIC'); lbl.position.set(0,9,0); g.add(lbl);
   const o=worldObj(g,x,z,'clinic',{activationRadius:32,hopRadius:0});
   o.neonMat=neonMat; return o;
 }
@@ -844,6 +858,7 @@ function makeAmusementPark(x, z) {
   o.ring=ring; o.carTop=carTop; o.gondolas=gondolas;
   o.positionGondolas=positionGondolas; o.wheelAngle=0;
   o.horses=g.children.filter(c=>c.userData && c.userData.isHorse);
+  const lbl=makeLabel('FUN PARK'); lbl.position.set(0,12,0); g.add(lbl);
   return o;
 }
 
@@ -918,6 +933,7 @@ function makeConstruction(x, z) {
     bar.position.set(-5+i*2.5,0.4,4.2); g.add(bar);
   }
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('CONSTRUCTION'); lbl.position.set(0,8,0); g.add(lbl);
   const o=worldObj(g,x,z,'construction',{activationRadius:32,hopRadius:0});
   o.tractor=tractor; o.tractorAngle=0; return o;
 }
@@ -961,6 +977,7 @@ function makePark(x, z) {
     cone.position.set(Math.cos(a)*7,1.75,Math.sin(a)*5); g.add(cone);
   }
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('PARK'); lbl.position.set(0,7,0); g.add(lbl);
   const o=worldObj(g,x,z,'park',{activationRadius:28,hopRadius:0});
   o.swings=swings; o.swingAngle=0; return o;
 }
@@ -979,6 +996,7 @@ function makeDuck(x, z) {
   const wing=new THREE.Mesh(new THREE.BoxGeometry(0.52,0.12,0.58),wm);
   wing.position.set(0,0.3,0); g.add(wing);
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('DUCK'); lbl.position.set(0,3,0); g.add(lbl);
   const o=worldObj(g,x,z,'bird',{hopRadius:10});
   o.flyingUp=false; o.flyTimer=0; o.flyVx=0; o.flyVy=0; o.flyVz=0;
   return o;
@@ -1008,6 +1026,7 @@ function makeRabbit(x, z) {
     eye.position.set(s*0.15,0.82,0.46); g.add(eye);
   }
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('RABBIT'); lbl.position.set(0,3.5,0); g.add(lbl);
   const o=worldObj(g,x,z,'rabbit',{hopRadius:14});
   o.fleeing=false; o.fleeVx=0; o.fleeVz=0; o.fleeSpeed=22;
   return o;
@@ -1061,6 +1080,7 @@ function makeRocket(x, z) {
   innerFlame.rotation.x=Math.PI; innerFlame.position.y=0; innerFlame.visible=false; rk.add(innerFlame);
   g.add(rk);
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('ROCKET'); lbl.position.set(0,14,0); g.add(lbl);
   const o=worldObj(g,x,z,'rocket',{activationRadius:45,hopRadius:0});
   o.rocket=rk; o.flame=flame; o.innerFlame=innerFlame;
   o.launched=false; o.launchVy=0; o.rocketY=0.5;
@@ -1093,6 +1113,7 @@ function makeSchool(x, z) {
     new THREE.MeshLambertMaterial({color:0xff5500}));
   flag.position.set(9.6,8,0); g.add(flag);
   g.rotation.y=Math.random()*Math.PI*2;
+  const lbl=makeLabel('SCHOOL'); lbl.position.set(0,10,0); g.add(lbl);
   const o=worldObj(g,x,z,'school',{activationRadius:28,hopRadius:0});
   o.bell=bell; o.bellAngle=0; return o;
 }
@@ -1772,7 +1793,7 @@ allWorldObjects.push(makeSandwichBoat());
   makeDirectionSign(-60, -45, '↘ LAKE', 0.94);
   makeDirectionSign(-130,-95, '↘ LAKE', 0.94);
   makeDirectionSign(-210,-155,'↘ LAKE', 0.94);
-  makeDirectionSign(-295,-215,'↘ LAKE  almost there!', 0.94);
+  makeDirectionSign(-295,-215,'↘ LAKE', 0.94);
 })();
 
 function updatePlane(dt, px, pz) {
