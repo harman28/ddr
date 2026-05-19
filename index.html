@@ -1450,15 +1450,15 @@ const aiCars = aiDefs.map(d => ({
 }));
 for (const c of aiCars) c.mesh.position.set(c.wx, GND_Y, c.wz);
 
-let carsPopped = 0;
+const bumpedCars = new Set();  // each car counted once per session
 const carCounterEl = document.getElementById('car-counter');
 function updateCarCounter() {
-  carCounterEl.textContent = `${carsPopped}/${aiCars.length}`;
+  carCounterEl.textContent = `${bumpedCars.size}/${aiCars.length}`;
 }
-function onCarPopped() {
-  carsPopped++;
+function onCarPopped(car) {
+  bumpedCars.add(car);
   updateCarCounter();
-  if (!successPending && carsPopped >= aiCars.length) showSuccessScreen();
+  if (!successPending && bumpedCars.size >= aiCars.length) showSuccessScreen();
 }
 updateCarCounter();
 
@@ -1466,7 +1466,7 @@ let successPending = false;
 function dismissSuccessScreen() {
   if (!successPending) return;
   document.getElementById('success-screen').style.display = 'none';
-  carsPopped = 0;
+  bumpedCars.clear();
   for (const car of aiCars) {
     car.exploding = false; car.explodeTimer = 0;
     car.mesh.visible = true; car.orbitActive = false;
@@ -1578,7 +1578,7 @@ function updateAICars(dt, px, pz) {
         beep(440, 0.15, 'sine', 0.12);
         setTimeout(() => beep(660, 0.12, 'sine', 0.08), 80);
         setTimeout(() => beep(880, 0.1, 'sine', 0.05), 150);
-        onCarPopped();
+        onCarPopped(car);
       } else if (dist < 90) {
         steerToward(car, car.wx - dx, car.wz - dz, 2.2, dt); // away
         car.speed = Math.min(car.speed + 16*dt, car.maxSpeed);
@@ -1600,7 +1600,7 @@ function updateAICars(dt, px, pz) {
           spawnExplosion(car.wx, car.wz);
           beep(90, 0.5, 'sawtooth', 0.12);
           setTimeout(() => beep(60, 0.6, 'sawtooth', 0.09), 80);
-          onCarPopped();
+          onCarPopped(car);
         }
       } else {
         car.speed *= Math.pow(0.97, dt*60);
@@ -1623,7 +1623,7 @@ function updateAICars(dt, px, pz) {
           spawnGreenExplosion(car.wx, car.wz);
           beep(550, 0.18, 'sine', 0.1);
           setTimeout(() => beep(330, 0.25, 'sine', 0.07), 100);
-          if (dist < 5) { onCarPopped(); }
+          if (dist < 5) { onCarPopped(car); }
         } else {
           car.speed = Math.min(car.speed + 9*dt, car.maxSpeed);
           const circ = (car.speed / Math.max(car.orbitRadius, 1));
@@ -1639,7 +1639,7 @@ function updateAICars(dt, px, pz) {
           spawnGreenExplosion(car.wx, car.wz);
           beep(550, 0.18, 'sine', 0.1);
           setTimeout(() => beep(330, 0.25, 'sine', 0.07), 100);
-          onCarPopped();
+          onCarPopped(car);
         }
         car.wanderTimer -= dt;
         if (car.wanderTimer <= 0) { car.wanderHeading=Math.random()*Math.PI*2; car.wanderTimer=3+Math.random()*4; }
@@ -1655,7 +1655,7 @@ function updateAICars(dt, px, pz) {
         spawnExplosion(car.wx, car.wz);
         beep(200, 0.3, 'sawtooth', 0.1);
         setTimeout(() => beep(140, 0.35, 'sawtooth', 0.08), 90);
-        onCarPopped();
+        onCarPopped(car);
       }
       car.wanderTimer -= dt;
       if (car.wanderTimer <= 0) {
@@ -1673,7 +1673,7 @@ function updateAICars(dt, px, pz) {
         spawnGreenExplosion(car.wx, car.wz);
         beep(330, 0.2, 'sine', 0.09);
         setTimeout(() => beep(440, 0.15, 'sine', 0.06), 100);
-        onCarPopped();
+        onCarPopped(car);
       }
       car.wanderTimer -= dt;
       if (car.wanderTimer <= 0) { car.wanderHeading=Math.random()*Math.PI*2; car.wanderTimer=5+Math.random()*7; }
@@ -1779,7 +1779,7 @@ document.addEventListener('keydown', e => {
     cruise=false; keys.gas=false; keys.left=false; keys.right=false; keys.reverse=false;
     gearKnobEl.classList.remove('cruise'); gearKnobEl.textContent='▲';
     camera.position.set(0,7.5,-16);
-    carsPopped=0; updateCarCounter();
+    bumpedCars.clear(); updateCarCounter();
     gameStarted=false;
     document.getElementById('title-screen').style.display='';
   }
