@@ -1766,8 +1766,8 @@ allWorldObjects.push(makeSandwichBoat());
   // Each sign faces roughly toward the player approaching from northeast (faceHeading ≈ 0.94).
   // Sign at spawn faces -Z (Math.PI) so it's readable when you first drive forward.
   // Signs face the player coming from origin (northeast of each sign), faceHeading ≈ 0.94
-  // First sign is in front of spawn (z=18) so player drives forward into it; faces back toward player
-  makeDirectionSign(  0,  18, '↘ LAKE', 0.0);
+  // First sign is in front of spawn (z=18); Math.PI rotates face toward player approaching from -Z
+  makeDirectionSign(  0,  18, '↘ LAKE', Math.PI);
   makeDirectionSign( -8,  -6, '↘ LAKE', 0.94);
   makeDirectionSign(-60, -45, '↘ LAKE', 0.94);
   makeDirectionSign(-130,-95, '↘ LAKE', 0.94);
