@@ -85,7 +85,7 @@ canvas { display:block; }
 #success-screen {
   position:fixed; inset:0; display:none; flex-direction:column;
   align-items:center; justify-content:center;
-  background:rgba(0,180,80,0.82); z-index:20; pointer-events:none;
+  background:rgba(0,180,80,0.82); z-index:20; pointer-events:all; cursor:pointer;
 }
 #success-main {
   font-size:clamp(36px,9vw,90px); color:#fff; text-align:center;
@@ -118,7 +118,7 @@ canvas { display:block; }
 <div id="car-counter">0/0</div>
 <div id="success-screen">
   <div id="success-main">YOU GOT THEM ALL!</div>
-  <div id="success-sub">Resetting in 3 seconds...</div>
+  <div id="success-sub">Press &#9650; / SPACE / ESC &nbsp;|&nbsp; Tap to play again</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -408,7 +408,7 @@ const player = { mesh: makeCar(0xff2020), wx: 0, wz: 0, heading: 0, speed: 0, ma
 // ─── WORLD OBJECT HELPERS ───────────────────────────────────────
 const allWorldObjects = [];
 // Terrain patches sit at y=0.01–0.038; lift all objects above them so nothing gets buried.
-const GND_Y = 0.05;
+const GND_Y = 0.12;
 
 function worldObj(group, wx, wz, type, opts) {
   group.position.set(wx, GND_Y, wz);
@@ -1448,33 +1448,43 @@ const aiCars = aiDefs.map(d => ({
   exploding:false, explodeTimer:0,
   orbitActive:false, orbitTimer:0, orbitRadius:20, orbitAngle:0, orbitDir:1,
 }));
-for (const c of aiCars) c.mesh.position.set(c.wx, 0, c.wz);
+for (const c of aiCars) c.mesh.position.set(c.wx, GND_Y, c.wz);
 
 let carsPopped = 0;
 const carCounterEl = document.getElementById('car-counter');
 function updateCarCounter() {
   carCounterEl.textContent = `${carsPopped}/${aiCars.length}`;
 }
+function onCarPopped() {
+  carsPopped++;
+  updateCarCounter();
+  if (!successPending && carsPopped >= aiCars.length) showSuccessScreen();
+}
 updateCarCounter();
 
 let successPending = false;
+function dismissSuccessScreen() {
+  if (!successPending) return;
+  document.getElementById('success-screen').style.display = 'none';
+  carsPopped = 0;
+  for (const car of aiCars) {
+    car.exploding = false; car.explodeTimer = 0;
+    car.mesh.visible = true; car.orbitActive = false;
+    respawnNearPlayer(car, player.wx, player.wz, 60, 180);
+  }
+  updateCarCounter();
+  successPending = false;
+  keys.gas = false;
+}
 function showSuccessScreen() {
   if (successPending) return;
   successPending = true;
-  const ss = document.getElementById('success-screen');
-  ss.style.display = 'flex';
-  setTimeout(() => {
-    ss.style.display = 'none';
-    carsPopped = 0;
-    for (const car of aiCars) {
-      car.exploding = false; car.explodeTimer = 0;
-      car.mesh.visible = true; car.orbitActive = false;
-      respawnNearPlayer(car, player.wx, player.wz, 60, 180);
-    }
-    updateCarCounter();
-    successPending = false;
-  }, 3000);
+  document.getElementById('success-screen').style.display = 'flex';
 }
+document.getElementById('success-screen').addEventListener('touchstart', e => {
+  e.preventDefault(); dismissSuccessScreen(); keys.gas = true;
+}, {passive:false});
+document.getElementById('success-screen').addEventListener('click', () => dismissSuccessScreen());
 
 // Spawn new cars over time so the denominator keeps climbing
 let newCarTimer = 20 + Math.random() * 15;
@@ -1499,7 +1509,7 @@ function maybeSpawnNewCar(dt, px, pz) {
     exploding: false, explodeTimer: 0,
     orbitActive: false, orbitTimer: 0, orbitRadius: 20, orbitAngle: 0, orbitDir: 1,
   };
-  car.mesh.position.set(car.wx, 0, car.wz);
+  car.mesh.position.set(car.wx, GND_Y, car.wz);
   aiCars.push(car);
   updateCarCounter();
 }
@@ -1568,7 +1578,7 @@ function updateAICars(dt, px, pz) {
         beep(440, 0.15, 'sine', 0.12);
         setTimeout(() => beep(660, 0.12, 'sine', 0.08), 80);
         setTimeout(() => beep(880, 0.1, 'sine', 0.05), 150);
-        carsPopped++; updateCarCounter();
+        onCarPopped();
       } else if (dist < 90) {
         steerToward(car, car.wx - dx, car.wz - dz, 2.2, dt); // away
         car.speed = Math.min(car.speed + 16*dt, car.maxSpeed);
@@ -1590,7 +1600,7 @@ function updateAICars(dt, px, pz) {
           spawnExplosion(car.wx, car.wz);
           beep(90, 0.5, 'sawtooth', 0.12);
           setTimeout(() => beep(60, 0.6, 'sawtooth', 0.09), 80);
-          carsPopped++; updateCarCounter();
+          onCarPopped();
         }
       } else {
         car.speed *= Math.pow(0.97, dt*60);
@@ -1613,7 +1623,7 @@ function updateAICars(dt, px, pz) {
           spawnGreenExplosion(car.wx, car.wz);
           beep(550, 0.18, 'sine', 0.1);
           setTimeout(() => beep(330, 0.25, 'sine', 0.07), 100);
-          if (dist < 5) { carsPopped++; updateCarCounter(); }
+          if (dist < 5) { onCarPopped(); }
         } else {
           car.speed = Math.min(car.speed + 9*dt, car.maxSpeed);
           const circ = (car.speed / Math.max(car.orbitRadius, 1));
@@ -1629,7 +1639,7 @@ function updateAICars(dt, px, pz) {
           spawnGreenExplosion(car.wx, car.wz);
           beep(550, 0.18, 'sine', 0.1);
           setTimeout(() => beep(330, 0.25, 'sine', 0.07), 100);
-          carsPopped++; updateCarCounter();
+          onCarPopped();
         }
         car.wanderTimer -= dt;
         if (car.wanderTimer <= 0) { car.wanderHeading=Math.random()*Math.PI*2; car.wanderTimer=3+Math.random()*4; }
@@ -1645,7 +1655,7 @@ function updateAICars(dt, px, pz) {
         spawnExplosion(car.wx, car.wz);
         beep(200, 0.3, 'sawtooth', 0.1);
         setTimeout(() => beep(140, 0.35, 'sawtooth', 0.08), 90);
-        carsPopped++; updateCarCounter();
+        onCarPopped();
       }
       car.wanderTimer -= dt;
       if (car.wanderTimer <= 0) {
@@ -1663,7 +1673,7 @@ function updateAICars(dt, px, pz) {
         spawnGreenExplosion(car.wx, car.wz);
         beep(330, 0.2, 'sine', 0.09);
         setTimeout(() => beep(440, 0.15, 'sine', 0.06), 100);
-        carsPopped++; updateCarCounter();
+        onCarPopped();
       }
       car.wanderTimer -= dt;
       if (car.wanderTimer <= 0) { car.wanderHeading=Math.random()*Math.PI*2; car.wanderTimer=5+Math.random()*7; }
@@ -1674,13 +1684,9 @@ function updateAICars(dt, px, pz) {
 
     car.wx += Math.sin(car.heading)*car.speed*dt;
     car.wz += Math.cos(car.heading)*car.speed*dt;
-    car.mesh.position.set(car.wx, 0, car.wz);
+    car.mesh.position.set(car.wx, GND_Y, car.wz);
     car.mesh.rotation.y = car.heading;
   }
-
-  // Win check — all cars simultaneously exploding
-  if (gameStarted && !successPending && aiCars.length > 0 && aiCars.every(c => c.exploding))
-    showSuccessScreen();
 
   // Particles
   for (let i=activeParticles.length-1;i>=0;i--) {
@@ -1752,6 +1758,12 @@ document.getElementById('title-screen').addEventListener('touchend', e => {
 }, {passive:false});
 
 document.addEventListener('keydown', e => {
+  if (successPending) {
+    if (e.code==='ArrowUp' || e.code==='Space' || e.code==='Escape') {
+      e.preventDefault(); dismissSuccessScreen(); return;
+    }
+    return;
+  }
   if (e.code==='ArrowLeft')  { keys.left=true; }
   if (e.code==='ArrowRight') { keys.right=true; }
   if (e.code==='ArrowUp')    { e.preventDefault(); keys.gas=true; startGame(); }
@@ -1763,7 +1775,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.code==='Escape') {
     player.wx=0; player.wz=0; player.heading=0; player.speed=0;
-    player.mesh.position.set(0,0,0); player.mesh.rotation.y=0;
+    player.mesh.position.set(0,GND_Y,0); player.mesh.rotation.y=0;
     cruise=false; keys.gas=false; keys.left=false; keys.right=false; keys.reverse=false;
     gearKnobEl.classList.remove('cruise'); gearKnobEl.textContent='▲';
     camera.position.set(0,7.5,-16);
@@ -2012,7 +2024,7 @@ function update(dt) {
   player.heading += si * STEER * dt;
   player.wx += Math.sin(player.heading)*player.speed*dt;
   player.wz += Math.cos(player.heading)*player.speed*dt;
-  player.mesh.position.set(player.wx, 0, player.wz);
+  player.mesh.position.set(player.wx, GND_Y, player.wz);
   player.mesh.rotation.y = player.heading;
 
   updateChunks(player.wx, player.wz);
