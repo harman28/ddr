@@ -1450,15 +1450,15 @@ const aiCars = aiDefs.map(d => ({
 }));
 for (const c of aiCars) c.mesh.position.set(c.wx, GND_Y, c.wz);
 
-const bumpedCars = new Set();  // each car counted once per session
+let carsPopped = 0;
 const carCounterEl = document.getElementById('car-counter');
 function updateCarCounter() {
-  carCounterEl.textContent = `${bumpedCars.size}/${aiCars.length}`;
+  carCounterEl.textContent = `${carsPopped}/${aiCars.length}`;
 }
 function onCarPopped(car) {
-  bumpedCars.add(car);
+  carsPopped++;
   updateCarCounter();
-  if (!successPending && bumpedCars.size >= aiCars.length) showSuccessScreen();
+  if (!successPending && carsPopped >= aiCars.length) showSuccessScreen();
 }
 updateCarCounter();
 
@@ -1466,7 +1466,7 @@ let successPending = false;
 function dismissSuccessScreen() {
   if (!successPending) return;
   document.getElementById('success-screen').style.display = 'none';
-  bumpedCars.clear();
+  carsPopped = 0;
   for (const car of aiCars) {
     car.exploding = false; car.explodeTimer = 0;
     car.mesh.visible = true; car.orbitActive = false;
@@ -1779,7 +1779,7 @@ document.addEventListener('keydown', e => {
     cruise=false; keys.gas=false; keys.left=false; keys.right=false; keys.reverse=false;
     gearKnobEl.classList.remove('cruise'); gearKnobEl.textContent='▲';
     camera.position.set(0,7.5,-16);
-    bumpedCars.clear(); updateCarCounter();
+    carsPopped=0; updateCarCounter();
     gameStarted=false;
     document.getElementById('title-screen').style.display='';
   }
