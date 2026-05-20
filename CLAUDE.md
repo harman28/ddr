@@ -51,9 +51,9 @@ Three.js right-handed system, camera looking toward **+Z**:
 - **-X appears RIGHT on screen**
 - Heading=0 moves the player in the +Z direction
 
-The lake is at world position `(-370, -270)`. From the spawn point (0,0), the lake is to the **bottom-right (↘)**. The arrow on all lake direction signs is `↘ LAKE`, not `↙`.
+The lake is at world position `(0, 260)`. From the spawn point (0,0), the lake is **straight ahead (↑)** along the +Z road. The arrow on all lake direction signs is `↑ LAKE`.
 
-The first lake sign (at world pos 0, 18) uses `faceHeading = Math.PI` so it faces toward the player at spawn — not away. Every other sign uses `faceHeading = 0.94`.
+All lake signs use `faceHeading = Math.PI` so they face the player driving forward (+Z). Signs are placed at x=14 (just right of the road centreline) so they don't block the road itself. Signs are at z=22, 70, 120, 170, 215 — leading to the lake edge at z≈170.
 
 ---
 
