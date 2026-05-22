@@ -617,18 +617,93 @@ function makeSandwichBoat() {
     new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),side:THREE.DoubleSide}));
   flagMesh.position.set(1.6,11.7,0); g.add(flagMesh);
 
-  const lakeX=0, lakeZ=260, orbitR=52;
+  const lakeX=0, lakeZ=260;
   const startAngle=Math.random()*Math.PI*2;
-  const o=worldObj(g, lakeX+Math.cos(startAngle)*orbitR, lakeZ+Math.sin(startAngle)*orbitR,
+  const startR=25+Math.random()*30;
+  const velAngle=Math.random()*Math.PI*2, speed=5+Math.random()*4;
+  const o=worldObj(g, lakeX+Math.cos(startAngle)*startR, lakeZ+Math.sin(startAngle)*startR,
     'sandwichboat', {hopRadius:0, activationRadius:0,
-      centerX:lakeX, centerZ:lakeZ,
-      orbitR:orbitR,
-      boatAngle:startAngle,
-      boatSpeed:0.07,
-      bobFreq:0.4,
+      lakeX:lakeX, lakeZ:lakeZ, lakeR:82,
+      vx:Math.cos(velAngle)*speed, vz:Math.sin(velAngle)*speed,
+      bobFreq:0.4, boatRadius:5,
     });
   o.group.position.y=0.08;
   const lbl=makeLabel('SANDWICH BOAT'); lbl.position.set(0,13,0); g.add(lbl);
+  return o;
+}
+
+function makeBurgerBoat() {
+  const g = new THREE.Group();
+  const bunMat    = new THREE.MeshLambertMaterial({color:0xd4a055});
+  const crustMat  = new THREE.MeshLambertMaterial({color:0xb87d38});
+  const pattyMat  = new THREE.MeshLambertMaterial({color:0x4a2810});
+  const lettMat   = new THREE.MeshLambertMaterial({color:0x44bb44});
+  const tomatoMat = new THREE.MeshLambertMaterial({color:0xdd2222});
+  const cheeseMat = new THREE.MeshLambertMaterial({color:0xffcc00});
+
+  // Bottom bun — round hull
+  const botBun = new THREE.Mesh(new THREE.CylinderGeometry(3.8,3.2,1.6,14), crustMat);
+  botBun.position.y=0.8; g.add(botBun);
+  const botTop = new THREE.Mesh(new THREE.CylinderGeometry(3.8,3.8,0.18,14), bunMat);
+  botTop.position.y=1.69; g.add(botTop);
+
+  // Lettuce — overhangs the bun
+  const lett = new THREE.Mesh(new THREE.CylinderGeometry(4.4,4.4,0.38,14), lettMat);
+  lett.position.y=2.0; g.add(lett);
+
+  // Patty
+  const patty = new THREE.Mesh(new THREE.CylinderGeometry(3.7,3.7,0.72,12), pattyMat);
+  patty.position.y=2.55; g.add(patty);
+
+  // Tomato
+  const tomato = new THREE.Mesh(new THREE.CylinderGeometry(3.6,3.6,0.38,12), tomatoMat);
+  tomato.position.y=3.1; g.add(tomato);
+
+  // Cheese — squarish, hangs over
+  const cheese = new THREE.Mesh(new THREE.CylinderGeometry(4.1,4.1,0.22,4), cheeseMat);
+  cheese.position.y=3.42; g.add(cheese);
+
+  // Top bun — domed
+  const topBun = new THREE.Mesh(new THREE.SphereGeometry(3.4,12,8), bunMat);
+  topBun.scale.y=0.68; topBun.position.y=4.28; g.add(topBun);
+
+  // Sesame seeds
+  for (let i=0; i<6; i++) {
+    const a=(i/6)*Math.PI*2;
+    const seed=new THREE.Mesh(new THREE.SphereGeometry(0.24,5,4),
+      new THREE.MeshLambertMaterial({color:0xf5e8c0}));
+    seed.position.set(Math.cos(a)*1.9, 4.78, Math.sin(a)*1.9);
+    seed.scale.y=0.38; g.add(seed);
+  }
+
+  // Mast
+  const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.14,7,6),
+    new THREE.MeshLambertMaterial({color:0x5C3A1E}));
+  mast.position.set(0,8.0,0); g.add(mast);
+
+  // Flag
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=128;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#cc2200'; ctx.fillRect(0,0,256,128);
+  ctx.fillStyle='#ffffff'; ctx.font='bold 36px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('BURGER BOAT', 128, 64);
+  const flagMesh=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.6),
+    new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),side:THREE.DoubleSide}));
+  flagMesh.position.set(1.6,11.7,0); g.add(flagMesh);
+
+  const lakeX=0, lakeZ=260;
+  const startAngle=Math.random()*Math.PI*2+Math.PI; // offset from sandwich boat
+  const startR=25+Math.random()*30;
+  const velAngle=Math.random()*Math.PI*2, speed=5+Math.random()*4;
+  const o=worldObj(g, lakeX+Math.cos(startAngle)*startR, lakeZ+Math.sin(startAngle)*startR,
+    'burgerboat', {hopRadius:0, activationRadius:0,
+      lakeX:lakeX, lakeZ:lakeZ, lakeR:82,
+      vx:Math.cos(velAngle)*speed, vz:Math.sin(velAngle)*speed,
+      bobFreq:0.5, boatRadius:5,
+    });
+  o.group.position.y=0.08;
+  const lbl=makeLabel('BURGER BOAT'); lbl.position.set(0,13,0); g.add(lbl);
   return o;
 }
 
@@ -1372,14 +1447,22 @@ function updateWorldObjects(dt, px, pz) {
       // Face along river direction (flip when reversing)
       o.group.rotation.y = Math.atan2(o.riverDX * o.boatDir, o.riverDZ * o.boatDir);
     }
-    // Sandwich boat — slow orbit around lake
-    if (o.type === 'sandwichboat') {
-      o.boatAngle += o.boatSpeed * dt;
-      o.wx = o.centerX + Math.cos(o.boatAngle) * o.orbitR;
-      o.wz = o.centerZ + Math.sin(o.boatAngle) * o.orbitR;
+    // Lake boats (sandwich + burger) — drift freely, bounce off shore
+    if (o.type === 'sandwichboat' || o.type === 'burgerboat') {
+      o.wx += o.vx * dt;
+      o.wz += o.vz * dt;
+      const dlx = o.wx - o.lakeX, dlz = o.wz - o.lakeZ;
+      const dl = Math.sqrt(dlx * dlx + dlz * dlz);
+      if (dl > o.lakeR) {
+        const nx = dlx / dl, nz = dlz / dl;
+        const dot = o.vx * nx + o.vz * nz;
+        if (dot > 0) { o.vx -= 2 * dot * nx; o.vz -= 2 * dot * nz; }
+        o.wx = o.lakeX + nx * o.lakeR;
+        o.wz = o.lakeZ + nz * o.lakeR;
+      }
       const bob = Math.sin(now * 0.001 * o.bobFreq) * 0.07;
       o.group.position.set(o.wx, 0.06 + bob, o.wz);
-      o.group.rotation.y = o.boatAngle + Math.PI / 2;
+      o.group.rotation.y = Math.atan2(o.vx, o.vz);
     }
 
     // Activation radius
@@ -1884,8 +1967,10 @@ const plane={
 };
 plane.mesh.visible=false;
 
-// Permanent sandwich boat at the lake
-allWorldObjects.push(makeSandwichBoat());
+// Permanent lake boats — sandwich and burger — drift and bounce off each other
+const lakeBoats = [];
+{ const sb=makeSandwichBoat(), bb=makeBurgerBoat();
+  allWorldObjects.push(sb, bb); lakeBoats.push(sb, bb); }
 
 // Lake directional signs — guides player from spawn → lake (straight ahead, +Z)
 (function addLakeSigns() {
@@ -2010,6 +2095,27 @@ function updateTracks(dt, wx, wz, heading, speed) {
   }
 }
 
+// ─── LAKE BOAT COLLISION ────────────────────────────────────────
+function updateLakeBoatCollision() {
+  if (lakeBoats.length < 2) return;
+  const a = lakeBoats[0], b = lakeBoats[1];
+  const dx = b.wx - a.wx, dz = b.wz - a.wz;
+  const dist = Math.sqrt(dx * dx + dz * dz);
+  const minDist = (a.boatRadius || 5) + (b.boatRadius || 5);
+  if (dist < minDist && dist > 0.001) {
+    const nx = dx / dist, nz = dz / dist;
+    const relVx = a.vx - b.vx, relVz = a.vz - b.vz;
+    const dot = relVx * nx + relVz * nz;
+    if (dot > 0) {
+      a.vx -= dot * nx; a.vz -= dot * nz;
+      b.vx += dot * nx; b.vz += dot * nz;
+    }
+    const overlap = (minDist - dist) * 0.5;
+    a.wx -= nx * overlap; a.wz -= nz * overlap;
+    b.wx += nx * overlap; b.wz += nz * overlap;
+  }
+}
+
 // ─── UPDATE ─────────────────────────────────────────────────────
 const ACCEL=22, BRAKE=32, STEER=1.7;
 
@@ -2031,6 +2137,7 @@ function update(dt) {
 
   updateChunks(player.wx, player.wz);
   updateWorldObjects(dt, player.wx, player.wz);
+  updateLakeBoatCollision();
   updateAICars(dt, player.wx, player.wz);
   maybeSpawnNewCar(dt, player.wx, player.wz);
   updateCamera(player.wx, player.wz, player.heading, dt);
