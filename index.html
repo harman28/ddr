@@ -727,10 +727,6 @@ function makePastaBoat() {
     new THREE.MeshLambertMaterial({color:0xe0d8c8}));
   inner.position.y=1.1; g.add(inner);
 
-  // Pasta base mound
-  const mound = new THREE.Mesh(new THREE.SphereGeometry(3.0,10,7), pastaMat);
-  mound.scale.set(1.0,0.4,1.0); mound.position.y=2.55; g.add(mound);
-
   // Spaghetti loops — TorusGeometry at various tilts looks exactly like curled noodles
   for (const [r,tube,x,y,z,rx,ry] of [
     [1.8, 0.28,  0.0, 2.5,  0.0,  0.3,  0.0],
