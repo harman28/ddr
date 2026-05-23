@@ -1314,13 +1314,43 @@ function makeSchool(x, z) {
 }
 
 // ─── PEPPA PIG CHARACTERS ───────────────────────────────────────
-// ─── PIG SPRITE HELPERS ─────────────────────────────────────────
-function _pigShape(ctx, fn, fill, ol, lw) {
-  ctx.beginPath(); fn();
-  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-  ctx.strokeStyle = ol || '#111'; ctx.lineWidth = lw || 3.5; ctx.stroke();
+// Load a WebP image, strip its white background via pixel processing,
+// return a THREE.CanvasTexture that updates automatically on load.
+function _makePigTex(imgSrc) {
+  const cv = document.createElement('canvas'); cv.width=4; cv.height=4;
+  const ctx = cv.getContext('2d');
+  const tex = new THREE.CanvasTexture(cv);
+  const img = new Image();
+  img.onload = function() {
+    cv.width = img.width; cv.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    const id = ctx.getImageData(0, 0, cv.width, cv.height);
+    const d = id.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const r=d[i], g=d[i+1], b=d[i+2];
+      const mn=Math.min(r,g,b), mx=Math.max(r,g,b);
+      const bright=(r+g+b)/3, sat=mx-mn;
+      if (bright>245 && sat<15) {
+        d[i+3]=0;
+      } else if (bright>210 && sat<40) {
+        const t=(bright-210)/35, s=Math.min(1,sat/40);
+        d[i+3]=Math.round((1-t*(1-s*0.6))*d[i+3]);
+      }
+    }
+    ctx.putImageData(id, 0, 0);
+    tex.needsUpdate = true;
+  };
+  img.src = imgSrc;
+  return tex;
 }
+const PIG_TEXTURES = {
+  'PEPPA':     _makePigTex('assets/Peppa_Pig.webp'),
+  'GEORGE':    _makePigTex('assets/George_s9.webp'),
+  'MUMMY PIG': _makePigTex('assets/Mummy_Pig.webp'),
+  'DADDY PIG': _makePigTex('assets/Daddy_Pig-0.webp'),
+};
 
+// ── Dead code kept for reference only — replaced by image sprites ──
 function drawPeppa(ctx, W, H) {
   ctx.clearRect(0,0,W,H);
   const pink='#ffb3c1', ip='#ff8aaa', red='#e8102a', dred='#b30d22';
@@ -1500,21 +1530,19 @@ function drawDaddyPig(ctx, W, H) {
   S(()=>ctx.ellipse(115,314,30,14,0.1,0,Math.PI*2), '#1144aa');
 }
 
-function makePigSprite(x, z, name, drawFn, sc) {
+function makePigSprite(x, z, name, sc) {
   sc = sc || 1.0;
-  const W=200, H=280;
-  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
-  drawFn(cv.getContext('2d'), W, H);
-  const tex=new THREE.CanvasTexture(cv);
-  const mat=new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
-  const sprite=new THREE.Sprite(mat);
-  sprite.scale.set(5.5*sc, 7.3*sc, 1);
-  sprite.position.y = 3.65*sc;
+  const tex = PIG_TEXTURES[name];
+  const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
+  const sprite = new THREE.Sprite(mat);
+  const H = 6.5 * sc;
+  sprite.scale.set(H, H, 1);
+  sprite.position.y = H / 2;
 
   const g=new THREE.Group();
   g.add(sprite);
 
-  const lbl=makeLabel(name); lbl.position.set(0, 7.6*sc+0.5, 0); g.add(lbl);
+  const lbl=makeLabel(name); lbl.position.set(0, H+0.6, 0); g.add(lbl);
 
   // Speech bubble
   const bCv=document.createElement('canvas'); bCv.width=200; bCv.height=70;
@@ -1539,7 +1567,7 @@ function makePigSprite(x, z, name, drawFn, sc) {
   const bubMat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(bCv),transparent:true,depthTest:false});
   const bubble=new THREE.Sprite(bubMat);
   bubble.scale.set(4.5*sc, 1.6*sc, 1);
-  bubble.position.set(1.5, 8.5*sc, 0);
+  bubble.position.set(1.5, H+1.5, 0);
   bubble.visible=false; g.add(bubble);
 
   const o=worldObj(g, x, z, 'pig', {hopRadius:13});
@@ -1660,10 +1688,10 @@ function makePig(x, z, name, opts) {
   o.bubble=bubble; o.bubbleTimer=0;
   return o;
 }
-function makePeppa(x,z)    { return makePigSprite(x,z,'PEPPA',    drawPeppa,    1.0); }
-function makeGeorge(x,z)   { return makePigSprite(x,z,'GEORGE',   drawGeorge,   0.82); }
-function makeMummyPig(x,z) { return makePigSprite(x,z,'MUMMY PIG',drawMummyPig, 1.08); }
-function makeDaddyPig(x,z) { return makePigSprite(x,z,'DADDY PIG',drawDaddyPig, 1.28); }
+function makePeppa(x,z)    { return makePigSprite(x,z,'PEPPA',    1.0); }
+function makeGeorge(x,z)   { return makePigSprite(x,z,'GEORGE',   0.82); }
+function makeMummyPig(x,z) { return makePigSprite(x,z,'MUMMY PIG',1.08); }
+function makeDaddyPig(x,z) { return makePigSprite(x,z,'DADDY PIG',1.28); }
 
 // ─── CHUNK SYSTEM ───────────────────────────────────────────────
 const CHUNK_SIZE = 100;
