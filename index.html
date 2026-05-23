@@ -1533,7 +1533,7 @@ function drawDaddyPig(ctx, W, H) {
 function makePigSprite(x, z, name, sc) {
   sc = sc || 1.0;
   const tex = PIG_TEXTURES[name];
-  const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
+  const mat = new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:true, depthWrite:false});
   const sprite = new THREE.Sprite(mat);
   const H = 6.5 * sc;
   sprite.scale.set(H, H, 1);
@@ -1564,7 +1564,7 @@ function makePigSprite(x, z, name, sc) {
   bCtx.fillStyle='#cc2255'; bCtx.font=`bold 28px Arial`;
   bCtx.textAlign='center'; bCtx.textBaseline='middle';
   bCtx.fillText(name==='GEORGE'?'Roar!':'Oink!', 100, 30);
-  const bubMat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(bCv),transparent:true,depthTest:false});
+  const bubMat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(bCv),transparent:true,depthTest:true,depthWrite:false});
   const bubble=new THREE.Sprite(bubMat);
   bubble.scale.set(4.5*sc, 1.6*sc, 1);
   bubble.position.set(1.5, H+1.5, 0);
