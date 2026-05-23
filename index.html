@@ -1715,7 +1715,7 @@ const _wizStarTex = (() => {
 function drawWizard(ctx, W, H) {
   ctx.clearRect(0,0,W,H);
   const robeCol='#1a3a8f', robeD='#0f2460', hatCol='#1a237e';
-  const gold='#ffd700', skin='#f5c5a0', wht='#f0f0ea', wand='#5c3a1e';
+  const gold='#ffd700', skin='#f0c090', wht='#f2f2ec', wand='#5c3a1e';
 
   function _star(cx,cy,r){
     ctx.beginPath();
@@ -1726,144 +1726,152 @@ function drawWizard(ctx, W, H) {
     } ctx.closePath();
   }
 
-  // ── Back arm ──
+  // ── 1. Back arm ──
   ctx.fillStyle=skin;
-  ctx.beginPath(); ctx.ellipse(42,183,12,22,0.3,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#d4a070'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(44,185,12,22,0.3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#c4906a'; ctx.lineWidth=1.5; ctx.stroke();
 
-  // ── Beard (drawn behind head) ──
-  ctx.fillStyle=wht;
-  ctx.beginPath();
-  ctx.moveTo(54,142); ctx.quadraticCurveTo(36,180,48,228);
-  ctx.quadraticCurveTo(72,272,102,278);
-  ctx.quadraticCurveTo(132,268,148,228);
-  ctx.quadraticCurveTo(162,182,150,142);
-  ctx.quadraticCurveTo(102,152,54,142);
-  ctx.closePath(); ctx.fill();
-  // Beard strands
-  ctx.strokeStyle='#d0d0c8'; ctx.lineWidth=2.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(72,148); ctx.quadraticCurveTo(60,192,72,255); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(100,152); ctx.quadraticCurveTo(96,205,100,268); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(130,148); ctx.quadraticCurveTo(136,192,124,258); ctx.stroke();
-
-  // ── Robe ──
+  // ── 2. Robe body ──
   ctx.fillStyle=robeCol;
   ctx.beginPath();
-  ctx.moveTo(40,162); ctx.quadraticCurveTo(28,200,26,262);
-  ctx.lineTo(174,262); ctx.quadraticCurveTo(172,200,160,162);
-  ctx.quadraticCurveTo(100,172,40,162);
+  ctx.moveTo(44,156); ctx.quadraticCurveTo(30,205,28,262);
+  ctx.lineTo(172,262); ctx.quadraticCurveTo(170,205,158,156);
+  ctx.quadraticCurveTo(100,168,44,156);
   ctx.closePath(); ctx.fill();
-  // Robe hem
   ctx.fillStyle=robeD;
-  ctx.beginPath(); ctx.ellipse(100,262,74,10,0,0,Math.PI*2); ctx.fill();
-  // Stars on robe
+  ctx.beginPath(); ctx.ellipse(100,262,72,10,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=gold;
-  _star(56,198,9);  ctx.fill();
-  _star(148,208,8); ctx.fill();
-  _star(100,232,7); ctx.fill();
-  _star(68,248,5);  ctx.fill();
-  // Crescent moons on robe (paint-over technique)
+  _star(58,200,9); ctx.fill();
+  _star(148,212,8); ctx.fill();
+  _star(100,238,7); ctx.fill();
+  _star(66,252,5); ctx.fill();
   ctx.fillStyle=gold;
-  ctx.beginPath(); ctx.arc(132,190,9,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(130,188,9,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=robeCol;
-  ctx.beginPath(); ctx.arc(136,186,7,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(134,184,7,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=gold;
-  ctx.beginPath(); ctx.arc(80,218,8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(76,226,8,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=robeCol;
-  ctx.beginPath(); ctx.arc(84,214,6,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(80,222,6,0,Math.PI*2); ctx.fill();
 
-  // ── Head ──
+  // ── 3. Head ──
   ctx.fillStyle=skin;
-  ctx.beginPath(); ctx.ellipse(98,115,46,42,0,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#d4a070'; ctx.lineWidth=2; ctx.stroke();
-  // Nose (side-profile bump, right)
+  ctx.beginPath(); ctx.ellipse(97,112,44,41,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#c4906a'; ctx.lineWidth=2; ctx.stroke();
+  // Prominent wizard nose
   ctx.fillStyle=skin;
-  ctx.beginPath(); ctx.ellipse(142,120,15,11,0.3,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#c4906a';
-  ctx.beginPath(); ctx.arc(136,122,3,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(148,118,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(139,119,16,11,0.25,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#c48060';
+  ctx.beginPath(); ctx.arc(133,121,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(145,116,3,0,Math.PI*2); ctx.fill();
 
-  // ── Hat (drawn after head so it sits on top) ──
-  // Hat brim shadow
+  // ── 4. Hat ──
   ctx.fillStyle='#0d1550';
-  ctx.beginPath(); ctx.ellipse(96,84,82,17,-0.06,0,Math.PI*2); ctx.fill();
-  // Hat body
+  ctx.beginPath(); ctx.ellipse(94,82,80,16,-0.05,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=hatCol;
   ctx.beginPath();
-  ctx.moveTo(110,6);
-  ctx.quadraticCurveTo(148,42,174,84);
-  ctx.lineTo(18,84);
-  ctx.quadraticCurveTo(44,42,110,6);
+  ctx.moveTo(108,5); ctx.quadraticCurveTo(147,40,171,82);
+  ctx.lineTo(17,82); ctx.quadraticCurveTo(44,40,108,5);
   ctx.closePath(); ctx.fill();
-  // Hat brim top
   ctx.fillStyle='#222880';
-  ctx.beginPath(); ctx.ellipse(96,84,80,15,-0.06,0,Math.PI*2); ctx.fill();
-  // Hat band
+  ctx.beginPath(); ctx.ellipse(94,82,78,14,-0.05,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#0d1550';
-  ctx.beginPath(); ctx.ellipse(96,85,76,12,-0.06,0,Math.PI*2); ctx.fill();
-  // Stars on hat
+  ctx.beginPath(); ctx.ellipse(94,83,74,11,-0.05,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=gold;
-  _star(92,32,10); ctx.fill();
-  _star(132,54,8); ctx.fill();
-  _star(68,58,7);  ctx.fill();
-  // Small star on band
-  _star(38,85,6); ctx.fill();
+  _star(90,30,10); ctx.fill();
+  _star(131,52,8); ctx.fill();
+  _star(65,57,7); ctx.fill();
+  _star(40,83,6); ctx.fill();
 
-  // ── Face details (on top of hat brim if any overlap) ──
-  // Bushy white eyebrows
-  ctx.strokeStyle=wht; ctx.lineWidth=6.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(65,96); ctx.quadraticCurveTo(80,87,96,93); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(105,90); ctx.quadraticCurveTo(120,81,135,86); ctx.stroke();
-  // Eyes (intense, slightly narrowed)
+  // ── 5. Face details ──
+  // Bushy brows — RIGHT brow raised high for imperious look
+  ctx.strokeStyle=wht; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(62,96); ctx.quadraticCurveTo(76,87,92,93); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(104,89); ctx.quadraticCurveTo(119,75,135,81); ctx.stroke();
+  // Eyes — intense, commanding
   ctx.fillStyle='#110800';
-  ctx.beginPath(); ctx.ellipse(80,104,9,7,-0.1,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(114,100,9,7,-0.1,0,Math.PI*2); ctx.fill();
-  // Eye highlights
-  ctx.fillStyle=wht;
-  ctx.beginPath(); ctx.arc(83,101,3.5,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(117,97,3.5,0,Math.PI*2); ctx.fill();
-  // Slight grin
-  ctx.strokeStyle='#b07050'; ctx.lineWidth=3; ctx.lineCap='round';
-  ctx.beginPath(); ctx.arc(120,130,12,3.6,5.8); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(78,103,9,7,-0.1,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(113,99,9,7,-0.1,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.beginPath(); ctx.arc(81,100,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(116,96,3,0,Math.PI*2); ctx.fill();
+  // BIG CONFIDENT GRIN — center above mouth, arc curves DOWN through bottom = smile ✓
+  ctx.strokeStyle='#7a3818'; ctx.lineWidth=4.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(95,115,20,0.18,Math.PI-0.18); ctx.stroke();
 
-  // ── Wand arm (front, raised) ──
+  // ── 6. Long flowing beard (drawn OVER robe) ──
+  ctx.fillStyle='#efefea';
+  ctx.beginPath();
+  ctx.moveTo(60,140); // left chin
+  ctx.quadraticCurveTo(38,180,36,228);
+  ctx.quadraticCurveTo(42,268,72,291);
+  ctx.quadraticCurveTo(97,304,100,306); // long tip
+  ctx.quadraticCurveTo(105,304,132,289);
+  ctx.quadraticCurveTo(162,266,166,226);
+  ctx.quadraticCurveTo(166,180,144,140); // right chin
+  ctx.quadraticCurveTo(100,153,60,140);
+  ctx.closePath(); ctx.fill();
+  // Beard strands
+  ctx.strokeStyle='#d4d4cc'; ctx.lineWidth=2.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(74,148); ctx.bezierCurveTo(56,194,50,242,70,288); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(100,154); ctx.bezierCurveTo(94,208,92,256,100,302); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(128,148); ctx.bezierCurveTo(140,194,144,240,130,285); ctx.stroke();
+  ctx.strokeStyle='#c8c8be'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(88,151); ctx.bezierCurveTo(76,198,70,244,76,285); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(114,150); ctx.bezierCurveTo(124,196,128,240,118,283); ctx.stroke();
+  // Mustache — prominent drooping wizard mustache
+  ctx.fillStyle='#e6e6de';
+  ctx.beginPath();
+  ctx.moveTo(74,126); ctx.quadraticCurveTo(90,137,100,134);
+  ctx.quadraticCurveTo(112,137,126,126);
+  ctx.quadraticCurveTo(120,148,100,143); ctx.quadraticCurveTo(82,148,74,126);
+  ctx.closePath(); ctx.fill();
+  // Re-draw smile over mustache so it stays visible
+  ctx.strokeStyle='#7a3818'; ctx.lineWidth=3.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(95,115,20,0.18,Math.PI-0.18); ctx.stroke();
+
+  // ── 7. Wand arm (front, raised high) ──
   ctx.fillStyle=skin;
-  ctx.beginPath(); ctx.ellipse(152,163,12,22,-0.45,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#d4a070'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(152,162,12,22,-0.45,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#c4906a'; ctx.lineWidth=1.5; ctx.stroke();
   ctx.fillStyle=skin;
-  ctx.beginPath(); ctx.arc(158,145,9,0,Math.PI*2); ctx.fill();
-  // Wand
+  ctx.beginPath(); ctx.arc(158,144,9,0,Math.PI*2); ctx.fill();
   ctx.strokeStyle=wand; ctx.lineWidth=5.5; ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(162,150); ctx.lineTo(188,78); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(162,148); ctx.lineTo(192,65); ctx.stroke();
   ctx.strokeStyle='#8b5a2b'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(163,148); ctx.lineTo(187,80); ctx.stroke();
-  // Wand tip glow aura
-  ctx.fillStyle='rgba(255,220,50,0.3)';
-  ctx.beginPath(); ctx.arc(188,74,20,0,Math.PI*2); ctx.fill();
-  // Wand tip star
+  ctx.beginPath(); ctx.moveTo(163,146); ctx.lineTo(191,67); ctx.stroke();
+  ctx.fillStyle='rgba(255,220,50,0.35)';
+  ctx.beginPath(); ctx.arc(192,62,22,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,240,150,0.5)';
+  ctx.beginPath(); ctx.arc(192,62,14,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=gold;
-  _star(188,74,13); ctx.fill();
-  ctx.fillStyle='rgba(255,255,200,0.8)';
-  ctx.beginPath(); ctx.arc(188,74,5,0,Math.PI*2); ctx.fill();
+  _star(192,62,13); ctx.fill();
+  ctx.fillStyle='rgba(255,255,220,0.9)';
+  ctx.beginPath(); ctx.arc(192,62,5,0,Math.PI*2); ctx.fill();
 
-  // ── Boots ──
+  // ── 8. Boots ──
   ctx.fillStyle='#1a1a2e';
-  ctx.beginPath(); ctx.ellipse(72,268,24,11,-0.2,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(120,268,24,11,0.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(72,266,22,9,-0.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(120,266,22,9,0.2,0,Math.PI*2); ctx.fill();
 }
 
 function _castWizardVoice() {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance('Abracadabra... gilly gilly, CHOO!');
-  u.rate = 0.68; u.pitch = 0.42; u.volume = 1.0;
-  // Prefer a deep male English voice
-  const v = speechSynthesis.getVoices();
-  const deep = v.find(x =>
+  const voices = speechSynthesis.getVoices();
+  const deep = voices.find(x =>
     x.lang.startsWith('en') &&
     ['daniel','alex','fred','tom','david','mark'].some(n=>x.name.toLowerCase().includes(n)));
-  if (deep) u.voice = deep;
-  speechSynthesis.speak(u);
+  const mkU = (text, rate, pitch) => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate; u.pitch = pitch; u.volume = 1.0;
+    if (deep) u.voice = deep;
+    return u;
+  };
+  // Three utterances queued in sequence — theatrical pauses between each
+  speechSynthesis.speak(mkU('Abracadabra', 0.46, 0.15));
+  speechSynthesis.speak(mkU('gilly, gilly', 0.52, 0.20));
+  speechSynthesis.speak(mkU('CHOO!', 0.68, 0.15));
 }
 
 function _spawnWizParticles(o) {
@@ -1888,14 +1896,14 @@ function _spawnWizParticles(o) {
 }
 
 function makeWizard(x, z) {
-  const W=200, H=280;
+  const W=200, H=310;
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   drawWizard(cv.getContext('2d'), W, H);
   const tex=new THREE.CanvasTexture(cv);
   const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true,depthWrite:false});
   const sprite=new THREE.Sprite(mat);
-  const SH=8.2; // sprite height in world units
-  sprite.scale.set(SH,SH,1); sprite.position.y=SH/2;
+  const SH=9.0;
+  sprite.scale.set(SH*(W/H), SH, 1); sprite.position.y=SH/2;
 
   const g=new THREE.Group(); g.add(sprite);
   const lbl=makeLabel('WIZARD'); lbl.position.set(0,SH+0.6,0); g.add(lbl);
