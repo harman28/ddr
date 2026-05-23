@@ -1313,6 +1313,124 @@ function makeSchool(x, z) {
   o.bell=bell; o.bellAngle=0; return o;
 }
 
+// ─── PEPPA PIG CHARACTERS ───────────────────────────────────────
+function makePig(x, z, name, opts) {
+  const sc       = opts.scale    || 1.0;
+  const bodyCol  = opts.bodyColor|| 0xffaabb;
+  const topCol   = opts.topColor || 0xff3333;
+  const isDaddy  = opts.isDaddy  || false;
+  const hasDino  = opts.hasDino  || false;
+  const g = new THREE.Group();
+  const pinkM  = new THREE.MeshLambertMaterial({color:bodyCol});
+  const topM   = new THREE.MeshLambertMaterial({color:topCol});
+  const blackM = new THREE.MeshLambertMaterial({color:0x111111});
+  const whiteM = new THREE.MeshLambertMaterial({color:0xffffff});
+
+  // Head — round sphere
+  const head=new THREE.Mesh(new THREE.SphereGeometry(1.1*sc,10,8),pinkM);
+  head.position.set(0,3.8*sc,0); g.add(head);
+
+  // Snout — flat cylinder pointing forward, the iconic Peppa feature
+  const snout=new THREE.Mesh(new THREE.CylinderGeometry(0.52*sc,0.56*sc,0.46*sc,8),pinkM);
+  snout.rotation.x=Math.PI/2; snout.position.set(0,3.52*sc,1.08*sc); g.add(snout);
+  for (const sx of [-0.2*sc,0.2*sc]) {
+    const nostril=new THREE.Mesh(new THREE.SphereGeometry(0.1*sc,5,4),blackM);
+    nostril.position.set(sx,3.51*sc,1.36*sc); g.add(nostril);
+  }
+
+  // Eyes
+  for (const sx of [-0.52*sc,0.52*sc]) {
+    const eyeW=new THREE.Mesh(new THREE.SphereGeometry(0.19*sc,6,5),whiteM);
+    eyeW.position.set(sx,3.94*sc,0.9*sc); g.add(eyeW);
+    const pupil=new THREE.Mesh(new THREE.SphereGeometry(0.1*sc,5,4),blackM);
+    pupil.position.set(sx*1.04,3.95*sc,1.07*sc); g.add(pupil);
+  }
+
+  // Ears — oval bumps on top of head
+  for (const sx of [-0.68*sc,0.68*sc]) {
+    const ear=new THREE.Mesh(new THREE.SphereGeometry(0.32*sc,7,6),pinkM);
+    ear.scale.set(1,1.35,0.7); ear.position.set(sx,4.65*sc,0.1*sc); g.add(ear);
+  }
+
+  // Body / outfit
+  const bodyMesh=new THREE.Mesh(
+    new THREE.BoxGeometry(1.9*sc, (isDaddy?2.5:2.1)*sc, 1.4*sc), topM);
+  bodyMesh.position.set(0,1.9*sc,0); g.add(bodyMesh);
+
+  // Daddy Pig's round belly
+  if (isDaddy) {
+    const belly=new THREE.Mesh(new THREE.SphereGeometry(0.82*sc,8,7),pinkM);
+    belly.scale.set(1,0.88,1); belly.position.set(0,2.1*sc,0.72*sc); g.add(belly);
+    // Glasses
+    for (const sx of [-0.46*sc,0.46*sc]) {
+      const gl=new THREE.Mesh(new THREE.TorusGeometry(0.21*sc,0.07*sc,5,8),blackM);
+      gl.position.set(sx,3.96*sc,1.02*sc); gl.rotation.y=Math.PI/2; g.add(gl);
+    }
+    const bridge=new THREE.Mesh(new THREE.BoxGeometry(0.18*sc,0.07*sc,0.06*sc),blackM);
+    bridge.position.set(0,3.96*sc,1.02*sc); g.add(bridge);
+  }
+
+  // Arms — slightly angled out
+  for (const sx of [-1.1*sc,1.1*sc]) {
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.19*sc,0.17*sc,1.0*sc,6),pinkM);
+    arm.rotation.z = sx>0 ? -0.5 : 0.5;
+    arm.position.set(sx,2.55*sc,0); g.add(arm);
+  }
+
+  // Legs
+  for (const sx of [-0.48*sc,0.48*sc]) {
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.25*sc,0.21*sc,0.88*sc,6),pinkM);
+    leg.position.set(sx,0.6*sc,0); g.add(leg);
+  }
+
+  // Curly tail
+  const tail=new THREE.Mesh(
+    new THREE.TorusGeometry(0.2*sc,0.08*sc,5,7,Math.PI*1.4),pinkM);
+  tail.position.set(0,2.45*sc,-0.78*sc); tail.rotation.x=-0.38; g.add(tail);
+
+  // George's dinosaur toy (tiny green blob in his hand)
+  if (hasDino) {
+    const dinoMat=new THREE.MeshLambertMaterial({color:0x44bb44});
+    const db=new THREE.Mesh(new THREE.SphereGeometry(0.3*sc,6,5),dinoMat);
+    db.scale.set(1,0.82,1.25); db.position.set(1.38*sc,1.9*sc,0.3*sc); g.add(db);
+    const dh=new THREE.Mesh(new THREE.SphereGeometry(0.2*sc,6,5),dinoMat);
+    dh.position.set(1.52*sc,2.28*sc,0.48*sc); g.add(dh);
+  }
+
+  g.rotation.y=Math.random()*Math.PI*2;
+
+  const lbl=makeLabel(name); lbl.position.set(0,(6.2*sc)+0.8,0); g.add(lbl);
+
+  // Speech bubble — "Oink!" shown briefly when approached
+  const bCv=document.createElement('canvas'); bCv.width=180; bCv.height=58;
+  const bCtx=bCv.getContext('2d');
+  bCtx.fillStyle='#fff5f8';
+  bCtx.beginPath();
+  const br=12;
+  bCtx.moveTo(br,0); bCtx.lineTo(180-br,0); bCtx.quadraticCurveTo(180,0,180,br);
+  bCtx.lineTo(180,58-br); bCtx.quadraticCurveTo(180,58,180-br,58);
+  bCtx.lineTo(br,58); bCtx.quadraticCurveTo(0,58,0,58-br);
+  bCtx.lineTo(0,br); bCtx.quadraticCurveTo(0,0,br,0);
+  bCtx.closePath(); bCtx.fill();
+  bCtx.strokeStyle='#ff88aa'; bCtx.lineWidth=3; bCtx.stroke();
+  bCtx.fillStyle='#cc2255'; bCtx.font='bold 28px Arial';
+  bCtx.textAlign='center'; bCtx.textBaseline='middle'; bCtx.fillText('Oink!',90,29);
+  const bubMat=new THREE.SpriteMaterial({
+    map:new THREE.CanvasTexture(bCv),transparent:true,depthTest:false});
+  const bubble=new THREE.Sprite(bubMat);
+  bubble.scale.set(3.8,1.25,1);
+  bubble.position.set(0,(7.8*sc)+0.8,0);
+  bubble.visible=false; g.add(bubble);
+
+  const o=worldObj(g,x,z,'pig',{hopRadius:13});
+  o.bubble=bubble; o.bubbleTimer=0;
+  return o;
+}
+function makePeppa(x,z)    { return makePig(x,z,'PEPPA',    {bodyColor:0xffaabb,topColor:0xff3333,scale:1.0}); }
+function makeGeorge(x,z)   { return makePig(x,z,'GEORGE',   {bodyColor:0xffaabb,topColor:0x44aa44,scale:0.78,hasDino:true}); }
+function makeMummyPig(x,z) { return makePig(x,z,'MUMMY PIG',{bodyColor:0xffaabb,topColor:0x4499ff,scale:1.08}); }
+function makeDaddyPig(x,z) { return makePig(x,z,'DADDY PIG',{bodyColor:0xffaabb,topColor:0x4455cc,scale:1.28,isDaddy:true}); }
+
 // ─── CHUNK SYSTEM ───────────────────────────────────────────────
 const CHUNK_SIZE = 100;
 const CHUNK_RADIUS = 3;
@@ -1325,6 +1443,8 @@ const OBJ_TYPES = [
   {fn:makePark,   w:5},  {fn:makeSchool, w:3},  {fn:makeRocket, w:2},
   {fn:makeDuck,   w:6},  {fn:makeRabbit, w:7},
   {fn:makeBillboard, w:3},
+  {fn:makePeppa, w:3}, {fn:makeGeorge, w:2},
+  {fn:makeMummyPig, w:2}, {fn:makeDaddyPig, w:2},
 ];
 const OBJ_TOTAL = OBJ_TYPES.reduce((s,t)=>s+t.w, 0);
 
@@ -1417,14 +1537,21 @@ function updateWorldObjects(dt, px, pz) {
     const dx = px - o.wx, dz = pz - o.wz;
     const dist = Math.sqrt(dx*dx + dz*dz);
 
-    // Hop trigger (trees, houses, bushes) — exaggerated comic leap
+    // Hop trigger (trees, houses, bushes, pigs) — exaggerated comic leap
     if (o.hopRadius > 0 && dist < o.hopRadius && !o.isHopping) {
       const len = dist || 1;
       const force = 1.0 + (o.hopRadius - dist) / o.hopRadius;
       o.vx = -(dx/len) * 22 * force; o.vz = -(dz/len) * 22 * force; o.vy = 14 * force;
       o.spinV = (Math.random()-0.5) * 8;
       o.isHopping = true;
-      beep(180 + Math.random()*180, 0.18, 'sine', 0.06);
+      if (o.type === 'pig') {
+        // Oink! — two-tone squeal
+        beep(380, 0.09, 'sine', 0.13);
+        setTimeout(() => beep(260, 0.18, 'sine', 0.11), 100);
+        if (o.bubble) { o.bubble.visible=true; o.bubbleTimer=2.6; }
+      } else {
+        beep(180 + Math.random()*180, 0.18, 'sine', 0.06);
+      }
     }
     if (o.isHopping) {
       o.wx += o.vx * dt; o.wz += o.vz * dt;
@@ -1522,6 +1649,12 @@ function updateWorldObjects(dt, px, pz) {
         o.group.position.set(o.wx,GND_Y,o.wz);
         if (Math.abs(o.fleeVx)+Math.abs(o.fleeVz)<0.4) o.fleeing=false;
       }
+    }
+
+    // Pig — hide speech bubble after timer
+    if (o.type === 'pig' && o.bubbleTimer > 0) {
+      o.bubbleTimer -= dt;
+      if (o.bubbleTimer <= 0) o.bubble.visible = false;
     }
 
     // River boats — drift up and down along river centreline, bounce at ends
@@ -2046,14 +2179,26 @@ function makePlaneMesh() {
   const cock=new THREE.Mesh(new THREE.SphereGeometry(0.48,7,5),
     new THREE.MeshLambertMaterial({color:0x99ddff,transparent:true,opacity:0.65}));
   cock.scale.set(0.65,0.7,1.2); cock.position.set(2.8,0.38,0); g.add(cock);
+  g.scale.set(2.5, 2.5, 2.5);
   scene.add(g); return g;
 }
-const plane={
-  mesh:makePlaneMesh(), state:'waiting',
-  wx:0, wz:0, wy:0.6, heading:0, speed:0,
-  waitTimer:8+Math.random()*15, roadDir:0, roadEndX:0, roadEndZ:0,
-};
-plane.mesh.visible=false;
+
+function makePlaneObj(waitOffset) {
+  const p = {
+    mesh: makePlaneMesh(),
+    state:'waiting',
+    wx:0, wz:0, wy:0.6,
+    heading:0, speed:0,
+    waitTimer: waitOffset,
+    roadDir:0, roadEndX:0, roadEndZ:0,
+    approachX:0, approachZ:0,
+    rollEndX:0, rollEndZ:0,
+    bounced:false, flyTimer:0,
+  };
+  p.mesh.visible = false;
+  return p;
+}
+const planes = [makePlaneObj(6), makePlaneObj(22 + Math.random()*10)];
 
 // Permanent lake boats — sandwich and burger — drift and bounce off each other
 const lakeBoats = [];
@@ -2093,50 +2238,112 @@ const lakeBoats = [];
   makeDirectionSign( 14, 215, '↑ LAKE', Math.PI);
 })();
 
-function updatePlane(dt, px, pz) {
-  const p=plane;
+function updateOnePlane(p, dt, px, pz) {
   if (p.state==='waiting') {
-    p.waitTimer-=dt;
-    if (p.waitTimer<=0) {
-      const r=ROADS[Math.floor(Math.random()*ROADS.length)];
+    p.waitTimer -= dt;
+    if (p.waitTimer <= 0) {
+      const r = ROADS[Math.floor(Math.random()*ROADS.length)];
       const fx=Math.sin(r.dir), fz=Math.cos(r.dir);
-      p.wx=r.x-fx*r.len*0.48; p.wz=r.z-fz*r.len*0.48;
-      p.wy=0.6; p.heading=r.dir; p.speed=0;
+      // Start at the far end of road, facing along it
+      p.wx=r.x - fx*r.len*0.46; p.wz=r.z - fz*r.len*0.46;
+      p.wy=GND_Y+0.6; p.heading=r.dir; p.speed=0;
       p.roadDir=r.dir;
-      p.roadEndX=r.x+fx*r.len*0.48; p.roadEndZ=r.z+fz*r.len*0.48;
+      p.roadEndX=r.x+fx*r.len*0.46; p.roadEndZ=r.z+fz*r.len*0.46;
+      p.bounced=false;
       p.mesh.visible=true; p.mesh.rotation.set(0,0,0);
       p.state='taxiing';
     }
+
   } else if (p.state==='taxiing') {
-    p.speed=Math.min(p.speed+9*dt, 24);
-    p.wx+=Math.sin(p.heading)*p.speed*dt;
-    p.wz+=Math.cos(p.heading)*p.speed*dt;
-    p.mesh.position.set(p.wx,p.wy,p.wz);
-    p.mesh.rotation.y=p.heading;
+    p.speed = Math.min(p.speed + 10*dt, 26);
+    p.wx += Math.sin(p.heading)*p.speed*dt;
+    p.wz += Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx, p.wy, p.wz);
+    p.mesh.rotation.x=0; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=0;
     const dx=p.roadEndX-p.wx, dz=p.roadEndZ-p.wz;
-    if (dx*dx+dz*dz<25*25 || p.speed>=22) p.state='climbing';
+    if (p.speed>=23 || dx*dx+dz*dz<22*22) p.state='climbing';
+
   } else if (p.state==='climbing') {
-    p.speed=Math.min(p.speed+6*dt,55);
-    p.wy+=14*dt;
-    p.wx+=Math.sin(p.heading)*p.speed*dt;
-    p.wz+=Math.cos(p.heading)*p.speed*dt;
-    p.mesh.position.set(p.wx,p.wy,p.wz);
-    p.mesh.rotation.y=p.heading;
-    p.mesh.rotation.z=-0.2; // bank
-    p.mesh.rotation.x=0.18; // nose up
-    if (p.wy>90) p.state='flying';
+    p.speed = Math.min(p.speed+6*dt, 52);
+    p.wy += 12*dt;
+    p.wx += Math.sin(p.heading)*p.speed*dt;
+    p.wz += Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx, p.wy, p.wz);
+    p.mesh.rotation.x=0.22; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=-0.15;
+    if (p.wy >= 55) {
+      p.wy=55; p.mesh.rotation.x=0; p.mesh.rotation.z=0;
+      p.flyTimer = 28 + Math.random()*22;
+      p.state='flying';
+    }
+
   } else if (p.state==='flying') {
-    p.heading+=0.22*dt;
-    p.wx+=Math.sin(p.heading)*p.speed*dt;
-    p.wz+=Math.cos(p.heading)*p.speed*dt;
-    p.mesh.position.set(p.wx,p.wy,p.wz);
-    p.mesh.rotation.y=p.heading; p.mesh.rotation.x=0; p.mesh.rotation.z=0;
-    // Disappear when far or after ~20s
-    const dx=p.wx-px,dz=p.wz-pz;
-    if (dx*dx+dz*dz>700*700) {
-      p.mesh.visible=false; p.state='waiting'; p.waitTimer=12+Math.random()*18;
+    p.heading += 0.19*dt;
+    p.wx += Math.sin(p.heading)*p.speed*dt;
+    p.wz += Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx, p.wy, p.wz);
+    p.mesh.rotation.x=0; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=0.12; // gentle bank
+    p.flyTimer -= dt;
+    if (p.flyTimer <= 0) {
+      // Pick a road to land on
+      const r = ROADS[Math.floor(Math.random()*ROADS.length)];
+      const fx=Math.sin(r.dir), fz=Math.cos(r.dir);
+      p.approachX = r.x - fx*r.len*0.44;
+      p.approachZ = r.z - fz*r.len*0.44;
+      p.rollEndX  = r.x + fx*r.len*0.44;
+      p.rollEndZ  = r.z + fz*r.len*0.44;
+      p.roadDir   = r.dir;
+      p.state='approaching';
+    }
+
+  } else if (p.state==='approaching') {
+    // Turn toward touchdown point and descend
+    const tdx=p.approachX-p.wx, tdz=p.approachZ-p.wz;
+    const want = Math.atan2(tdx, tdz);
+    let dh = want - p.heading;
+    while (dh> Math.PI) dh -= Math.PI*2;
+    while (dh<-Math.PI) dh += Math.PI*2;
+    p.heading += Math.sign(dh)*Math.min(Math.abs(dh), 1.8*dt);
+    p.wx += Math.sin(p.heading)*p.speed*dt;
+    p.wz += Math.cos(p.heading)*p.speed*dt;
+    if (p.wy > GND_Y+1.5) p.wy -= Math.min(10, p.wy*0.12) * dt;
+    p.mesh.position.set(p.wx, p.wy, p.wz);
+    p.mesh.rotation.x=-0.12; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=0;
+    const d2=tdx*tdx+tdz*tdz;
+    if (d2 < 55*55 && p.wy < 18) {
+      p.heading = p.roadDir; // align to runway
+      p.state='landing';
+    }
+
+  } else if (p.state==='landing') {
+    p.speed = Math.max(p.speed - 18*dt, 0);
+    p.wy    = Math.max(p.wy   - 13*dt, GND_Y+0.6);
+    p.wx += Math.sin(p.heading)*p.speed*dt;
+    p.wz += Math.cos(p.heading)*p.speed*dt;
+    p.mesh.position.set(p.wx, p.wy, p.wz);
+    p.mesh.rotation.x = p.wy > GND_Y+4 ? -0.1 : 0;
+    p.mesh.rotation.y = p.heading; p.mesh.rotation.z=0;
+    if (p.wy <= GND_Y+0.6 && !p.bounced) {
+      p.bounced=true;
+      beep(160, 0.3, 'sine', 0.12); // touchdown thump
+    }
+    if (p.wy <= GND_Y+0.6 && p.speed < 0.5) {
+      p.wy = GND_Y+0.6;
+      p.state='rollout';
+      p.waitTimer = 5 + Math.random()*5;
+    }
+
+  } else if (p.state==='rollout') {
+    p.waitTimer -= dt;
+    if (p.waitTimer <= 0) {
+      p.mesh.visible=false;
+      p.state='waiting';
+      p.waitTimer = 8 + Math.random()*12;
     }
   }
+}
+
+function updatePlanes(dt, px, pz) {
+  for (const p of planes) updateOnePlane(p, dt, px, pz);
 }
 
 // ─── CAR TRACKS ─────────────────────────────────────────────────
@@ -2233,7 +2440,7 @@ function update(dt) {
   maybeSpawnNewCar(dt, player.wx, player.wz);
   updateCamera(player.wx, player.wz, player.heading, dt);
   updateClouds(dt, player.wx, player.wz);
-  updatePlane(dt, player.wx, player.wz);
+  updatePlanes(dt, player.wx, player.wz);
   updateTracks(dt, player.wx, player.wz, player.heading, player.speed);
   updateEngine(player.speed, player.maxSpeed);
 }
