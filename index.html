@@ -1314,6 +1314,240 @@ function makeSchool(x, z) {
 }
 
 // ─── PEPPA PIG CHARACTERS ───────────────────────────────────────
+// ─── PIG SPRITE HELPERS ─────────────────────────────────────────
+function _pigShape(ctx, fn, fill, ol, lw) {
+  ctx.beginPath(); fn();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  ctx.strokeStyle = ol || '#111'; ctx.lineWidth = lw || 3.5; ctx.stroke();
+}
+
+function drawPeppa(ctx, W, H) {
+  ctx.clearRect(0,0,W,H);
+  const pink='#ffb3c1', ip='#ff8aaa', red='#e8102a', dred='#b30d22';
+  const blk='#111', wht='#fff'; const lw=3.5;
+  const S = (fn,f,o)=>_pigShape(ctx,fn,f,o,lw);
+  // back ear
+  S(()=>ctx.ellipse(50,38,22,28,-0.3,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(50,38,12,16,-0.3,0,Math.PI*2), ip, ip);
+  // head
+  S(()=>ctx.ellipse(87,92,68,62,0,0,Math.PI*2), pink);
+  // front ear
+  S(()=>ctx.ellipse(94,30,22,28,0.2,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(94,30,12,16,0.2,0,Math.PI*2), ip, ip);
+  // snout
+  S(()=>ctx.ellipse(152,108,34,27,0.1,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(142,103,7,5,-0.15,0,Math.PI*2), ip, ip);
+  S(()=>ctx.ellipse(158,113,7,5,0.1,0,Math.PI*2), ip, ip);
+  // eyes
+  S(()=>ctx.arc(106,68,11,0,Math.PI*2), blk, blk);
+  S(()=>ctx.arc(130,63,11,0,Math.PI*2), blk, blk);
+  ctx.fillStyle=wht; ctx.beginPath(); ctx.arc(110,64,4.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(134,59,4.5,0,Math.PI*2); ctx.fill();
+  // smile
+  ctx.strokeStyle='#cc2244'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(130,125,14,3.6,5.8); ctx.stroke();
+  // dress body
+  S(()=>{ ctx.moveTo(38,170); ctx.lineTo(148,170); ctx.quadraticCurveTo(152,170,152,174);
+          ctx.lineTo(152,242); ctx.quadraticCurveTo(152,250,144,250);
+          ctx.lineTo(42,250); ctx.quadraticCurveTo(34,250,34,242);
+          ctx.lineTo(34,174); ctx.quadraticCurveTo(34,170,38,170); ctx.closePath(); }, red);
+  // collar highlight
+  ctx.fillStyle='#ff5566'; ctx.beginPath(); ctx.ellipse(93,172,24,9,0,Math.PI,0); ctx.fill();
+  // arms
+  S(()=>ctx.ellipse(22,205,13,25,0.4,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(160,197,14,22,-0.25,0,Math.PI*2), pink);
+  // legs
+  S(()=>{ ctx.roundRect(46,245,28,46,9); }, pink);
+  S(()=>{ ctx.roundRect(92,245,28,46,9); }, pink);
+  // shoes
+  S(()=>ctx.ellipse(60,292,26,13,-0.1,0,Math.PI*2), dred);
+  S(()=>ctx.ellipse(106,292,26,13,0.1,0,Math.PI*2), dred);
+}
+
+function drawGeorge(ctx, W, H) {
+  ctx.clearRect(0,0,W,H);
+  const pink='#ffb3c1', ip='#ff8aaa', blue='#4499ee', dblue='#2266cc';
+  const grn='#44bb44', blk='#111', wht='#fff'; const lw=3.5;
+  const S = (fn,f,o)=>_pigShape(ctx,fn,f,o,lw);
+  // back ear
+  S(()=>ctx.ellipse(50,40,23,29,-0.3,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(50,40,13,17,-0.3,0,Math.PI*2), ip, ip);
+  // head (rounder — toddler)
+  S(()=>ctx.ellipse(88,96,70,65,0,0,Math.PI*2), pink);
+  // front ear
+  S(()=>ctx.ellipse(96,34,23,29,0.2,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(96,34,13,17,0.2,0,Math.PI*2), ip, ip);
+  // snout (bigger, chunkier)
+  S(()=>ctx.ellipse(158,114,36,30,0.1,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(148,109,8,6,-0.15,0,Math.PI*2), ip, ip);
+  S(()=>ctx.ellipse(164,119,8,6,0.1,0,Math.PI*2), ip, ip);
+  // eyes (bigger, rounder — toddler)
+  S(()=>ctx.arc(108,71,12,0,Math.PI*2), blk, blk);
+  S(()=>ctx.arc(133,66,12,0,Math.PI*2), blk, blk);
+  ctx.fillStyle=wht; ctx.beginPath(); ctx.arc(112,67,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(137,62,5,0,Math.PI*2); ctx.fill();
+  // smile
+  ctx.strokeStyle='#cc2244'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(133,130,14,3.6,5.8); ctx.stroke();
+  // blue shirt
+  S(()=>{ ctx.roundRect(22,168,118,65,14); }, blue);
+  // blue shorts
+  S(()=>{ ctx.roundRect(24,226,114,46,8); }, dblue);
+  // arms
+  S(()=>ctx.ellipse(18,200,13,25,0.35,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(150,193,14,22,-0.2,0,Math.PI*2), pink);
+  // dino toy in front arm
+  S(()=>ctx.ellipse(174,187,20,15,0.3,0,Math.PI*2), grn);
+  S(()=>ctx.ellipse(188,175,13,10,0.5,0,Math.PI*2), grn);
+  ctx.fillStyle=blk; ctx.beginPath(); ctx.arc(193,173,3,0,Math.PI*2); ctx.fill();
+  // legs
+  S(()=>{ ctx.roundRect(38,268,28,42,9); }, pink);
+  S(()=>{ ctx.roundRect(84,268,28,42,9); }, pink);
+  // shoes
+  S(()=>ctx.ellipse(52,311,26,12,-0.1,0,Math.PI*2), '#1155bb');
+  S(()=>ctx.ellipse(98,311,26,12,0.1,0,Math.PI*2), '#1155bb');
+}
+
+function drawMummyPig(ctx, W, H) {
+  ctx.clearRect(0,0,W,H);
+  const pink='#ffb3c1', ip='#ff8aaa', purp='#9955cc', dpurp='#7733aa';
+  const blk='#111', wht='#fff'; const lw=3.5;
+  const S = (fn,f,o)=>_pigShape(ctx,fn,f,o,lw);
+  // back ear (slightly smaller, more elegant)
+  S(()=>ctx.ellipse(48,35,20,26,-0.3,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(48,35,11,15,-0.3,0,Math.PI*2), ip, ip);
+  // head (a bit taller than Peppa)
+  S(()=>ctx.ellipse(86,88,66,64,0,0,Math.PI*2), pink);
+  // front ear
+  S(()=>ctx.ellipse(92,28,20,26,0.2,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(92,28,11,15,0.2,0,Math.PI*2), ip, ip);
+  // snout
+  S(()=>ctx.ellipse(150,104,33,27,0.1,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(140,100,7,5,-0.15,0,Math.PI*2), ip, ip);
+  S(()=>ctx.ellipse(156,109,7,5,0.1,0,Math.PI*2), ip, ip);
+  // eyes
+  S(()=>ctx.arc(104,64,11,0,Math.PI*2), blk, blk);
+  S(()=>ctx.arc(128,60,11,0,Math.PI*2), blk, blk);
+  ctx.fillStyle=wht; ctx.beginPath(); ctx.arc(108,60,4.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(132,56,4.5,0,Math.PI*2); ctx.fill();
+  // smile
+  ctx.strokeStyle='#cc2244'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(129,120,14,3.6,5.8); ctx.stroke();
+  // purple dress (longer/more elegant)
+  S(()=>{ ctx.moveTo(32,162); ctx.lineTo(152,162); ctx.quadraticCurveTo(156,162,156,166);
+          ctx.lineTo(156,250); ctx.quadraticCurveTo(156,258,148,258);
+          ctx.lineTo(36,258); ctx.quadraticCurveTo(28,258,28,250);
+          ctx.lineTo(28,166); ctx.quadraticCurveTo(28,162,32,162); ctx.closePath(); }, purp);
+  ctx.fillStyle='#bb77ee'; ctx.beginPath(); ctx.ellipse(92,164,26,9,0,Math.PI,0); ctx.fill();
+  // arms
+  S(()=>ctx.ellipse(20,202,12,26,0.4,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(162,194,14,24,-0.25,0,Math.PI*2), pink);
+  // legs (showing below long dress hem, more modest)
+  S(()=>{ ctx.roundRect(44,254,28,38,9); }, pink);
+  S(()=>{ ctx.roundRect(90,254,28,38,9); }, pink);
+  // shoes (lilac/pink)
+  S(()=>ctx.ellipse(58,294,26,13,-0.1,0,Math.PI*2), dpurp);
+  S(()=>ctx.ellipse(104,294,26,13,0.1,0,Math.PI*2), dpurp);
+}
+
+function drawDaddyPig(ctx, W, H) {
+  ctx.clearRect(0,0,W,H);
+  const pink='#ffb3c1', ip='#ff8aaa', yel='#f5c030', dblue='#2255aa';
+  const blk='#111', wht='#fff', gray='#888'; const lw=3.5;
+  const S = (fn,f,o)=>_pigShape(ctx,fn,f,o,lw);
+  // back ear (bigger)
+  S(()=>ctx.ellipse(46,34,25,32,-0.25,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(46,34,14,19,-0.25,0,Math.PI*2), ip, ip);
+  // head (biggest — Daddy has a large head and snout)
+  S(()=>ctx.ellipse(88,90,72,68,0,0,Math.PI*2), pink);
+  // front ear
+  S(()=>ctx.ellipse(96,28,25,32,0.15,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(96,28,14,19,0.15,0,Math.PI*2), ip, ip);
+  // snout (Daddy's most prominent feature — very large)
+  S(()=>ctx.ellipse(158,112,40,33,0.1,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(146,107,9,7,-0.15,0,Math.PI*2), ip, ip);
+  S(()=>ctx.ellipse(164,119,9,7,0.1,0,Math.PI*2), ip, ip);
+  // glasses ON the snout (two round frames)
+  S(()=>ctx.arc(142,102,14,0,Math.PI*2), null, gray);
+  S(()=>ctx.arc(162,100,14,0,Math.PI*2), null, gray);
+  // glasses bridge
+  ctx.strokeStyle=gray; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(156,102); ctx.lineTo(148,102); ctx.stroke();
+  // eyes (above the glasses area)
+  S(()=>ctx.arc(106,63,12,0,Math.PI*2), blk, blk);
+  S(()=>ctx.arc(131,59,12,0,Math.PI*2), blk, blk);
+  ctx.fillStyle=wht; ctx.beginPath(); ctx.arc(110,59,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(135,55,5,0,Math.PI*2); ctx.fill();
+  // smile
+  ctx.strokeStyle='#cc2244'; ctx.lineWidth=4.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(134,130,16,3.5,5.9); ctx.stroke();
+  // yellow shirt
+  S(()=>{ ctx.roundRect(18,158,148,82,16); }, yel);
+  // round belly (Daddy's trademark) — skin tone circle bulging below shirt
+  S(()=>ctx.ellipse(92,226,44,32,0,0,Math.PI*2), pink);
+  // belt / trouser top
+  S(()=>{ ctx.roundRect(18,234,148,14,6); }, blk);
+  // blue trousers
+  S(()=>{ ctx.roundRect(18,244,148,30,8); }, dblue);
+  // arms (chunkier)
+  S(()=>ctx.ellipse(14,198,15,28,0.4,0,Math.PI*2), pink);
+  S(()=>ctx.ellipse(174,190,16,26,-0.25,0,Math.PI*2), pink);
+  // legs
+  S(()=>{ ctx.roundRect(34,270,34,42,10); }, pink);
+  S(()=>{ ctx.roundRect(98,270,34,42,10); }, pink);
+  // shoes (dark blue)
+  S(()=>ctx.ellipse(51,314,30,14,-0.1,0,Math.PI*2), '#1144aa');
+  S(()=>ctx.ellipse(115,314,30,14,0.1,0,Math.PI*2), '#1144aa');
+}
+
+function makePigSprite(x, z, name, drawFn, sc) {
+  sc = sc || 1.0;
+  const W=200, H=280;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  drawFn(cv.getContext('2d'), W, H);
+  const tex=new THREE.CanvasTexture(cv);
+  const mat=new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false});
+  const sprite=new THREE.Sprite(mat);
+  sprite.scale.set(5.5*sc, 7.3*sc, 1);
+  sprite.position.y = 3.65*sc;
+
+  const g=new THREE.Group();
+  g.add(sprite);
+
+  const lbl=makeLabel(name); lbl.position.set(0, 7.6*sc+0.5, 0); g.add(lbl);
+
+  // Speech bubble
+  const bCv=document.createElement('canvas'); bCv.width=200; bCv.height=70;
+  const bCtx=bCv.getContext('2d');
+  bCtx.fillStyle='#fff5f8';
+  const br=14;
+  bCtx.beginPath();
+  bCtx.moveTo(br,0); bCtx.lineTo(200-br,0); bCtx.quadraticCurveTo(200,0,200,br);
+  bCtx.lineTo(200,60-br); bCtx.quadraticCurveTo(200,60,200-br,60);
+  bCtx.lineTo(br,60); bCtx.quadraticCurveTo(0,60,0,60-br);
+  bCtx.lineTo(0,br); bCtx.quadraticCurveTo(0,0,br,0);
+  bCtx.closePath(); bCtx.fill();
+  bCtx.strokeStyle='#ff88aa'; bCtx.lineWidth=3; bCtx.stroke();
+  // tail
+  bCtx.fillStyle='#fff5f8';
+  bCtx.beginPath(); bCtx.moveTo(28,60); bCtx.lineTo(52,60); bCtx.lineTo(36,72); bCtx.closePath(); bCtx.fill();
+  bCtx.strokeStyle='#ff88aa'; bCtx.lineWidth=2;
+  bCtx.beginPath(); bCtx.moveTo(28,60); bCtx.lineTo(36,72); bCtx.lineTo(52,60); bCtx.stroke();
+  bCtx.fillStyle='#cc2255'; bCtx.font=`bold 28px Arial`;
+  bCtx.textAlign='center'; bCtx.textBaseline='middle';
+  bCtx.fillText(name==='GEORGE'?'Roar!':'Oink!', 100, 30);
+  const bubMat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(bCv),transparent:true,depthTest:false});
+  const bubble=new THREE.Sprite(bubMat);
+  bubble.scale.set(4.5*sc, 1.6*sc, 1);
+  bubble.position.set(1.5, 8.5*sc, 0);
+  bubble.visible=false; g.add(bubble);
+
+  const o=worldObj(g, x, z, 'pig', {hopRadius:13});
+  o.bubble=bubble; o.bubbleTimer=0;
+  return o;
+}
+
+// ─── LEGACY STUB (not used, replaced by sprite) ───────────────────
 function makePig(x, z, name, opts) {
   const sc       = opts.scale    || 1.0;
   const bodyCol  = opts.bodyColor|| 0xffaabb;
@@ -1426,10 +1660,10 @@ function makePig(x, z, name, opts) {
   o.bubble=bubble; o.bubbleTimer=0;
   return o;
 }
-function makePeppa(x,z)    { return makePig(x,z,'PEPPA',    {bodyColor:0xffaabb,topColor:0xff3333,scale:1.0}); }
-function makeGeorge(x,z)   { return makePig(x,z,'GEORGE',   {bodyColor:0xffaabb,topColor:0x44aa44,scale:0.78,hasDino:true}); }
-function makeMummyPig(x,z) { return makePig(x,z,'MUMMY PIG',{bodyColor:0xffaabb,topColor:0x4499ff,scale:1.08}); }
-function makeDaddyPig(x,z) { return makePig(x,z,'DADDY PIG',{bodyColor:0xffaabb,topColor:0x4455cc,scale:1.28,isDaddy:true}); }
+function makePeppa(x,z)    { return makePigSprite(x,z,'PEPPA',    drawPeppa,    1.0); }
+function makeGeorge(x,z)   { return makePigSprite(x,z,'GEORGE',   drawGeorge,   0.82); }
+function makeMummyPig(x,z) { return makePigSprite(x,z,'MUMMY PIG',drawMummyPig, 1.08); }
+function makeDaddyPig(x,z) { return makePigSprite(x,z,'DADDY PIG',drawDaddyPig, 1.28); }
 
 // ─── CHUNK SYSTEM ───────────────────────────────────────────────
 const CHUNK_SIZE = 100;
@@ -2151,54 +2385,189 @@ function updateCamera(wx, wz, heading, dt) {
 }
 
 // ─── PLANE ──────────────────────────────────────────────────────
-function makePlaneMesh() {
-  const g=new THREE.Group();
-  const bm=new THREE.MeshLambertMaterial({color:0xdde8ff});
-  const wm=new THREE.MeshLambertMaterial({color:0xccddff});
-  // Fuselage
-  const fus=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.45,8,8),bm);
-  fus.rotation.z=Math.PI/2; g.add(fus);
-  // Nose cone
-  const nose=new THREE.Mesh(new THREE.ConeGeometry(0.55,1.4,8),bm);
-  nose.rotation.z=-Math.PI/2; nose.position.x=4.5; g.add(nose);
-  // Wings
-  const wing=new THREE.Mesh(new THREE.BoxGeometry(13,0.18,2.8),wm);
-  g.add(wing);
-  // Tail fin
-  const fin=new THREE.Mesh(new THREE.BoxGeometry(0.15,2.0,2.2),wm);
-  fin.position.set(-4,0.8,0); g.add(fin);
-  const stab=new THREE.Mesh(new THREE.BoxGeometry(4.5,0.14,1.2),wm);
-  stab.position.set(-4,0.3,0); g.add(stab);
-  // Engines
-  for (const s of [-1,1]) {
-    const eng=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.38,1.2,8),
-      new THREE.MeshLambertMaterial({color:0x888888}));
-    eng.rotation.z=Math.PI/2; eng.position.set(0.5,-0.45,s*3.2); g.add(eng);
-  }
-  // Cockpit
-  const cock=new THREE.Mesh(new THREE.SphereGeometry(0.48,7,5),
-    new THREE.MeshLambertMaterial({color:0x99ddff,transparent:true,opacity:0.65}));
-  cock.scale.set(0.65,0.7,1.2); cock.position.set(2.8,0.38,0); g.add(cock);
-  g.scale.set(2.5, 2.5, 2.5);
-  scene.add(g); return g;
+// Custom geometry helpers — all in plane-local space (nose = +Z, right wing = +X)
+function makeSweepWingGeo(span, rootChord, tipChord, sweepDeg, thick) {
+  const sw = span * Math.tan(sweepDeg * Math.PI/180);
+  const h = thick/2;
+  const rLE=rootChord/2, rTE=-rootChord/2;
+  const tLE=tipChord/2-sw, tTE=-tipChord/2-sw;
+  const v=new Float32Array([
+    0,h,rLE, 0,h,rTE, span,h,tTE, span,h,tLE,
+    0,-h,rLE, 0,-h,rTE, span,-h,tTE, span,-h,tLE,
+  ]);
+  const idx=[0,3,2, 0,2,1, 4,5,6, 4,6,7,
+             0,1,5, 0,5,4, 3,7,6, 3,6,2,
+             0,4,7, 0,7,3, 1,2,6, 1,6,5];
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(v,3));
+  geo.setIndex(idx); geo.computeVertexNormals(); return geo;
+}
+function makeFinGeo(height, rootChord, tipChord, sweepDeg) {
+  const sw=height*Math.tan(sweepDeg*Math.PI/180), h=0.14;
+  const rLE=rootChord/2, rTE=-rootChord/2;
+  const tLE=tipChord/2-sw, tTE=-tipChord/2-sw;
+  const v=new Float32Array([
+    h,0,rLE, h,0,rTE, h,height,tTE, h,height,tLE,
+    -h,0,rLE, -h,0,rTE, -h,height,tTE, -h,height,tLE,
+  ]);
+  const idx=[0,1,2, 0,2,3, 4,6,5, 4,7,6,
+             0,3,7, 0,7,4, 1,5,6, 1,6,2,
+             0,4,5, 0,5,1, 3,2,6, 3,6,7];
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(v,3));
+  geo.setIndex(idx); geo.computeVertexNormals(); return geo;
 }
 
+// Plane mesh — all parts built facing +Z (nose forward), wings spanning ±X
+function makePlaneMesh() {
+  const out=new THREE.Group(); // world-placed group
+  const g=new THREE.Group();   // inner group scaled
+  out.add(g);
+
+  const white=new THREE.MeshLambertMaterial({color:0xeef4ff});
+  const blue =new THREE.MeshLambertMaterial({color:0x0044cc});
+  const gray =new THREE.MeshLambertMaterial({color:0x8899aa});
+  const dkgray=new THREE.MeshLambertMaterial({color:0x334455});
+  const glass=new THREE.MeshLambertMaterial({color:0x88ccff,transparent:true,opacity:0.6});
+  const tire =new THREE.MeshLambertMaterial({color:0x111111});
+  const strut=new THREE.MeshLambertMaterial({color:0xaabbcc});
+
+  // ── Fuselage ──
+  // Main tube: along Z axis via rotation.x=-π/2
+  const fus=new THREE.Mesh(new THREE.CylinderGeometry(1.0,0.9,12,14),white);
+  fus.rotation.x=-Math.PI/2; g.add(fus);
+  // Nose cone (tip at +Z): rotate.x = π/2 puts tip at -Z → use -π/2 for tip at +Z
+  const noseCone=new THREE.Mesh(new THREE.ConeGeometry(1.0,3.5,14),white);
+  noseCone.rotation.x=-Math.PI/2; noseCone.position.z=7.75; g.add(noseCone);
+  // Tail cone (tip at -Z): rotate.x = +π/2 points tip to -Z
+  const tailCone=new THREE.Mesh(new THREE.ConeGeometry(0.9,3.5,14),white);
+  tailCone.rotation.x=Math.PI/2; tailCone.position.z=-7.75; g.add(tailCone);
+  // Blue livery stripe (slightly wider radius, at rear cabin)
+  const stripe=new THREE.Mesh(new THREE.CylinderGeometry(1.015,1.015,2.8,14),blue);
+  stripe.rotation.x=-Math.PI/2; stripe.position.z=-2.2; g.add(stripe);
+  // Cockpit windows (glass panel on nose upper side)
+  const wnds=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.48,3.6),glass);
+  wnds.position.set(0,0.88,5.0); wnds.rotation.x=-0.18; g.add(wnds);
+
+  // ── Wings (right: +X half, left: mirror -X) ──
+  const wingGeo=makeSweepWingGeo(9.5,3.8,1.5,26,0.22);
+  const rWing=new THREE.Mesh(wingGeo,white); rWing.position.set(0,-0.28,0); g.add(rWing);
+  const lWing=new THREE.Mesh(wingGeo,white); lWing.position.set(0,-0.28,0);
+  lWing.scale.x=-1; g.add(lWing);
+
+  // ── Engines (under wings at ~40% span) ──
+  for (const sx of [-1,1]) {
+    const ex=sx*4.0, ez=-0.8, ey=-1.45;
+    const nac=new THREE.Mesh(new THREE.CylinderGeometry(0.54,0.48,4.0,12),gray);
+    nac.rotation.x=-Math.PI/2; nac.position.set(ex,ey,ez); g.add(nac);
+    const intake=new THREE.Mesh(new THREE.TorusGeometry(0.54,0.1,8,12),dkgray);
+    intake.rotation.x=-Math.PI/2; intake.position.set(ex,ey,ez+2.0); g.add(intake);
+    const nozzle=new THREE.Mesh(new THREE.TorusGeometry(0.44,0.08,8,12),dkgray);
+    nozzle.rotation.x=-Math.PI/2; nozzle.position.set(ex,ey,ez-2.0); g.add(nozzle);
+    const pylon=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.85,1.6),gray);
+    pylon.position.set(ex,-0.85,ez); g.add(pylon);
+  }
+
+  // ── Tail assembly ──
+  const finGeo=makeFinGeo(3.5,2.4,0.9,40);
+  const vFin=new THREE.Mesh(finGeo,white); vFin.position.set(0,0.88,-6.2); g.add(vFin);
+  const stabGeo=makeSweepWingGeo(3.6,1.8,0.7,24,0.14);
+  const rStab=new THREE.Mesh(stabGeo,white); rStab.position.set(0,0.5,-7.0); g.add(rStab);
+  const lStab=new THREE.Mesh(stabGeo,white); lStab.position.set(0,0.5,-7.0);
+  lStab.scale.x=-1; g.add(lStab);
+
+  // ── Landing gear ──
+  const gearGroup=new THREE.Group(); g.add(gearGroup);
+  // Nose gear strut + 2 wheels
+  const nStrut=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,1.2,6),strut);
+  nStrut.position.set(0,-1.55,4.8); gearGroup.add(nStrut);
+  for (const sz of [-0.28,0.28]) {
+    const w=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.2,10),tire);
+    w.rotation.x=Math.PI/2; w.position.set(0,-2.18,4.8+sz); gearGroup.add(w);
+  }
+  // Main gear (two sets under wings)
+  for (const sx of [-1,1]) {
+    const mStrut=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.2,6),strut);
+    mStrut.position.set(sx*3.5,-1.55,-0.8); gearGroup.add(mStrut);
+    for (const sz of [-0.4,0.0,0.4]) {
+      const w=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34,0.22,10),tire);
+      w.rotation.x=Math.PI/2; w.position.set(sx*3.5,-2.2,-0.8+sz); gearGroup.add(w);
+    }
+  }
+
+  g.scale.set(1.7,1.7,1.7);
+  scene.add(out);
+  return { mesh:out, gear:gearGroup };
+}
+
+// ── Airport ──────────────────────────────────────────────────────
+// Runway runs north-south (along Z), at x=350, z=500
+const AIRPORT = { x:350, z:500, len:440, w:30 };
+(function makeAirport() {
+  const AX=AIRPORT.x, AZ=AIRPORT.z, AL=AIRPORT.len, AW=AIRPORT.w;
+  const apronMat=new THREE.MeshLambertMaterial({color:0x5a5a5a});
+  const apron=new THREE.Mesh(new THREE.PlaneGeometry(AW+60,AL+80),apronMat);
+  apron.rotation.x=-Math.PI/2; apron.position.set(AX+30,0.04,AZ); scene.add(apron);
+  const rwyMat=new THREE.MeshLambertMaterial({color:0x252525});
+  const rwy=new THREE.Mesh(new THREE.PlaneGeometry(AW,AL),rwyMat);
+  rwy.rotation.x=-Math.PI/2; rwy.position.set(AX,0.06,AZ); scene.add(rwy);
+  // Centerline dashes
+  const dlMat=new THREE.MeshLambertMaterial({color:0xffffff});
+  for (let dz=-AL/2+30; dz<AL/2-20; dz+=36) {
+    const dl=new THREE.Mesh(new THREE.PlaneGeometry(0.8,18),dlMat);
+    dl.rotation.x=-Math.PI/2; dl.position.set(AX,0.075,AZ+dz); scene.add(dl);
+  }
+  // Threshold stripes at each end
+  for (const endSign of [-1,1]) {
+    const tBase=AZ+endSign*(AL/2-24);
+    for (let i=-3; i<=3; i++) {
+      if (i===0) continue;
+      const ts=new THREE.Mesh(new THREE.PlaneGeometry(2.8,16),dlMat);
+      ts.rotation.x=-Math.PI/2; ts.position.set(AX+i*3.8,0.08,tBase); scene.add(ts);
+    }
+  }
+  // Control tower (just north-east of runway)
+  const twrX=AX+55, twrZ=AZ;
+  const shaft=new THREE.Mesh(new THREE.BoxGeometry(5,22,5),
+    new THREE.MeshLambertMaterial({color:0xccccdd}));
+  shaft.position.set(twrX,11,twrZ); scene.add(shaft);
+  const cab=new THREE.Mesh(new THREE.BoxGeometry(9,5.5,9),
+    new THREE.MeshLambertMaterial({color:0x88ccff,transparent:true,opacity:0.75}));
+  cab.position.set(twrX,24.75,twrZ); scene.add(cab);
+  const twrLbl=makeLabel('ATC'); twrLbl.position.set(twrX,29,twrZ); scene.add(twrLbl);
+  // Terminal building
+  const termX=AX+65, termZ=AZ+100;
+  const term=new THREE.Mesh(new THREE.BoxGeometry(70,8,22),
+    new THREE.MeshLambertMaterial({color:0xddddcc}));
+  term.position.set(termX,4,termZ); scene.add(term);
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(72,1,24),
+    new THREE.MeshLambertMaterial({color:0xbbbbaa}));
+  roof.position.set(termX,8.5,termZ); scene.add(roof);
+  const tLbl=makeLabel('AIRPORT'); tLbl.position.set(termX,11,termZ); scene.add(tLbl);
+  // Yellow taxiway line
+  const taxi=new THREE.Mesh(new THREE.PlaneGeometry(12,90),apronMat);
+  taxi.rotation.x=-Math.PI/2; taxi.position.set(AX+22,0.065,AZ+60); scene.add(taxi);
+  const txLine=new THREE.Mesh(new THREE.PlaneGeometry(0.5,90),
+    new THREE.MeshLambertMaterial({color:0xffcc00}));
+  txLine.rotation.x=-Math.PI/2; txLine.position.set(AX+22,0.085,AZ+60); scene.add(txLine);
+  // Sign pointing players to the airport
+  const aLbl=makeLabel('✈ AIRPORT →'); aLbl.position.set(18,6,380); scene.add(aLbl);
+})();
+
 function makePlaneObj(waitOffset) {
+  const pm = makePlaneMesh();
   const p = {
-    mesh: makePlaneMesh(),
+    mesh: pm.mesh, gear: pm.gear,
     state:'waiting',
     wx:0, wz:0, wy:0.6,
     heading:0, speed:0,
     waitTimer: waitOffset,
-    roadDir:0, roadEndX:0, roadEndZ:0,
-    approachX:0, approachZ:0,
-    rollEndX:0, rollEndZ:0,
     bounced:false, flyTimer:0,
   };
-  p.mesh.visible = false;
+  pm.mesh.visible = false;
   return p;
 }
-const planes = [makePlaneObj(6), makePlaneObj(22 + Math.random()*10)];
+const planes = [makePlaneObj(4), makePlaneObj(60)];
 
 // Permanent lake boats — sandwich and burger — drift and bounce off each other
 const lakeBoats = [];
@@ -2238,112 +2607,130 @@ const lakeBoats = [];
   makeDirectionSign( 14, 215, '↑ LAKE', Math.PI);
 })();
 
-function updateOnePlane(p, dt, px, pz) {
+// Airport key positions
+const _AX=AIRPORT.x, _AZ=AIRPORT.z, _AL=AIRPORT.len;
+const _TKOFF_Z = _AZ - _AL/2 + 40;   // south threshold + buffer
+const _TDOWN_Z = _AZ + _AL/2 - 40;   // north threshold - buffer
+const _APFX_Z  = _AZ + _AL/2 + 650;  // approach fix: 650 units north of runway
+
+function _setHeadingToward(p, tx, tz, turnRate, dt) {
+  const want = Math.atan2(tx - p.wx, tz - p.wz);
+  let dh = want - p.heading;
+  while (dh >  Math.PI) dh -= Math.PI*2;
+  while (dh < -Math.PI) dh += Math.PI*2;
+  p.heading += Math.sign(dh) * Math.min(Math.abs(dh), turnRate * dt);
+}
+
+function updateOnePlane(p, dt) {
   if (p.state==='waiting') {
     p.waitTimer -= dt;
     if (p.waitTimer <= 0) {
-      const r = ROADS[Math.floor(Math.random()*ROADS.length)];
-      const fx=Math.sin(r.dir), fz=Math.cos(r.dir);
-      // Start at the far end of road, facing along it
-      p.wx=r.x - fx*r.len*0.46; p.wz=r.z - fz*r.len*0.46;
-      p.wy=GND_Y+0.6; p.heading=r.dir; p.speed=0;
-      p.roadDir=r.dir;
-      p.roadEndX=r.x+fx*r.len*0.46; p.roadEndZ=r.z+fz*r.len*0.46;
-      p.bounced=false;
-      p.mesh.visible=true; p.mesh.rotation.set(0,0,0);
+      // Position at south threshold of airport runway, heading north
+      p.wx=_AX; p.wz=_TKOFF_Z; p.wy=GND_Y+1.8;
+      p.heading=0; p.speed=0; p.bounced=false;
+      p.gear.visible=true;
+      p.mesh.visible=true;
+      p.mesh.rotation.set(0,0,0);
       p.state='taxiing';
     }
 
   } else if (p.state==='taxiing') {
-    p.speed = Math.min(p.speed + 10*dt, 26);
-    p.wx += Math.sin(p.heading)*p.speed*dt;
-    p.wz += Math.cos(p.heading)*p.speed*dt;
+    // Accelerate down runway heading north (+Z)
+    p.speed = Math.min(p.speed + 9*dt, 30);
+    p.wz += p.speed * dt;              // heading=0, cos(0)=1 → moves in +Z
     p.mesh.position.set(p.wx, p.wy, p.wz);
-    p.mesh.rotation.x=0; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=0;
-    const dx=p.roadEndX-p.wx, dz=p.roadEndZ-p.wz;
-    if (p.speed>=23 || dx*dx+dz*dz<22*22) p.state='climbing';
+    p.mesh.rotation.set(0, 0, 0);      // facing +Z, level
+    // Rotate engine sound-like visual: slight pitch oscillation at low speed
+    if (p.speed >= 27) p.state='climbing';
 
   } else if (p.state==='climbing') {
-    p.speed = Math.min(p.speed+6*dt, 52);
-    p.wy += 12*dt;
-    p.wx += Math.sin(p.heading)*p.speed*dt;
-    p.wz += Math.cos(p.heading)*p.speed*dt;
+    p.speed = Math.min(p.speed + 5*dt, 55);
+    p.wy += 15 * dt;
+    p.wz += p.speed * dt;              // still heading north
+    if (p.wy >= 22) { p.gear.visible=false; } // gear retract
     p.mesh.position.set(p.wx, p.wy, p.wz);
-    p.mesh.rotation.x=0.22; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=-0.15;
-    if (p.wy >= 55) {
-      p.wy=55; p.mesh.rotation.x=0; p.mesh.rotation.z=0;
-      p.flyTimer = 28 + Math.random()*22;
+    // nose-up pitch (rotation.x negative = nose up in this orientation)
+    p.mesh.rotation.set(-0.28, 0, 0);
+    if (p.wy >= 65) {
+      p.wy = 65;
+      p.flyTimer = 38 + Math.random() * 18;
       p.state='flying';
     }
 
   } else if (p.state==='flying') {
-    p.heading += 0.19*dt;
-    p.wx += Math.sin(p.heading)*p.speed*dt;
-    p.wz += Math.cos(p.heading)*p.speed*dt;
+    // Gentle right-hand circle (heading decreases slowly), wide radius
+    p.heading -= 0.10 * dt;
+    p.wx += Math.sin(p.heading) * p.speed * dt;
+    p.wz += Math.cos(p.heading) * p.speed * dt;
     p.mesh.position.set(p.wx, p.wy, p.wz);
-    p.mesh.rotation.x=0; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=0.12; // gentle bank
+    // Gentle right bank: rotation.z positive = left wing up = right bank
+    p.mesh.rotation.set(0, p.heading, 0.14);
     p.flyTimer -= dt;
-    if (p.flyTimer <= 0) {
-      // Pick a road to land on
-      const r = ROADS[Math.floor(Math.random()*ROADS.length)];
-      const fx=Math.sin(r.dir), fz=Math.cos(r.dir);
-      p.approachX = r.x - fx*r.len*0.44;
-      p.approachZ = r.z - fz*r.len*0.44;
-      p.rollEndX  = r.x + fx*r.len*0.44;
-      p.rollEndZ  = r.z + fz*r.len*0.44;
-      p.roadDir   = r.dir;
-      p.state='approaching';
-    }
+    if (p.flyTimer <= 0) p.state='approaching';
 
   } else if (p.state==='approaching') {
-    // Turn toward touchdown point and descend
-    const tdx=p.approachX-p.wx, tdz=p.approachZ-p.wz;
-    const want = Math.atan2(tdx, tdz);
-    let dh = want - p.heading;
-    while (dh> Math.PI) dh -= Math.PI*2;
-    while (dh<-Math.PI) dh += Math.PI*2;
-    p.heading += Math.sign(dh)*Math.min(Math.abs(dh), 1.8*dt);
-    p.wx += Math.sin(p.heading)*p.speed*dt;
-    p.wz += Math.cos(p.heading)*p.speed*dt;
-    if (p.wy > GND_Y+1.5) p.wy -= Math.min(10, p.wy*0.12) * dt;
+    // Phase 1: navigate to approach fix far north of runway
+    const toFixX = _AX - p.wx, toFixZ = _APFX_Z - p.wz;
+    const distFix = Math.sqrt(toFixX*toFixX + toFixZ*toFixZ);
+    if (distFix > 120) {
+      _setHeadingToward(p, _AX, _APFX_Z, 1.4, dt);
+    } else {
+      // Phase 2: locked onto final approach heading south (Math.PI)
+      let dh = Math.PI - p.heading;
+      while (dh >  Math.PI) dh -= Math.PI*2;
+      while (dh < -Math.PI) dh += Math.PI*2;
+      p.heading += Math.sign(dh) * Math.min(Math.abs(dh), 2.0*dt);
+    }
+    p.wx += Math.sin(p.heading) * p.speed * dt;
+    p.wz += Math.cos(p.heading) * p.speed * dt;
+    // Begin descending once south of approach fix (heading generally south)
+    if (p.wz < _APFX_Z - 80 && p.wy > GND_Y + 2) {
+      const descentRate = Math.min(14, (p.wy - GND_Y - 2) * 0.08 + 4);
+      p.wy = Math.max(GND_Y + 1.8, p.wy - descentRate * dt);
+    }
+    if (p.wy < 30 && !p.gear.visible) p.gear.visible = true; // extend gear
     p.mesh.position.set(p.wx, p.wy, p.wz);
-    p.mesh.rotation.x=-0.12; p.mesh.rotation.y=p.heading; p.mesh.rotation.z=0;
-    const d2=tdx*tdx+tdz*tdz;
-    if (d2 < 55*55 && p.wy < 18) {
-      p.heading = p.roadDir; // align to runway
-      p.state='landing';
+    const pitch = p.wy > GND_Y+10 ? 0.1 : 0.04; // nose slightly down on descent
+    p.mesh.rotation.set(pitch, p.heading, 0);
+    // Switch to landing when aligned south, near touchdown zone, and low
+    const onGlidepath = Math.abs(p.heading - Math.PI) < 0.25;
+    const nearThreshold = p.wz < _TDOWN_Z + 100 && p.wz > _TDOWN_Z - 300;
+    if (onGlidepath && nearThreshold && p.wy < 14) {
+      p.heading = Math.PI; // snap to runway heading
+      p.state = 'landing';
     }
 
   } else if (p.state==='landing') {
-    p.speed = Math.max(p.speed - 18*dt, 0);
-    p.wy    = Math.max(p.wy   - 13*dt, GND_Y+0.6);
-    p.wx += Math.sin(p.heading)*p.speed*dt;
-    p.wz += Math.cos(p.heading)*p.speed*dt;
+    p.speed = Math.max(p.speed - 20*dt, 0);
+    p.wy = Math.max(p.wy - 16*dt, GND_Y + 1.8);
+    p.wz += Math.cos(p.heading) * p.speed * dt; // heading π → cos(π)=-1 → moves south
     p.mesh.position.set(p.wx, p.wy, p.wz);
-    p.mesh.rotation.x = p.wy > GND_Y+4 ? -0.1 : 0;
-    p.mesh.rotation.y = p.heading; p.mesh.rotation.z=0;
-    if (p.wy <= GND_Y+0.6 && !p.bounced) {
-      p.bounced=true;
-      beep(160, 0.3, 'sine', 0.12); // touchdown thump
+    // Flare: level off pitch as we near ground
+    const flare = p.wy < GND_Y + 6 ? -0.06 : 0.04;
+    p.mesh.rotation.set(flare, p.heading, 0);
+    if (p.wy <= GND_Y + 1.8 && !p.bounced) {
+      p.bounced = true;
+      beep(130, 0.35, 'sine', 0.14); // touchdown thump
     }
-    if (p.wy <= GND_Y+0.6 && p.speed < 0.5) {
-      p.wy = GND_Y+0.6;
-      p.state='rollout';
-      p.waitTimer = 5 + Math.random()*5;
+    if (p.wy <= GND_Y + 1.8 && p.speed < 0.5) {
+      p.wy = GND_Y + 1.8;
+      p.mesh.rotation.set(0, p.heading, 0);
+      p.state = 'rollout';
+      p.waitTimer = 6 + Math.random()*6;
     }
 
   } else if (p.state==='rollout') {
     p.waitTimer -= dt;
     if (p.waitTimer <= 0) {
-      p.mesh.visible=false;
-      p.state='waiting';
-      p.waitTimer = 8 + Math.random()*12;
+      p.mesh.visible = false;
+      p.state = 'waiting';
+      p.waitTimer = 12 + Math.random()*16;
     }
   }
 }
 
 function updatePlanes(dt, px, pz) {
-  for (const p of planes) updateOnePlane(p, dt, px, pz);
+  for (const p of planes) updateOnePlane(p, dt);
 }
 
 // ─── CAR TRACKS ─────────────────────────────────────────────────
