@@ -1705,8 +1705,8 @@ const OBJ_TYPES = [
   {fn:makePark,   w:5},  {fn:makeSchool, w:3},  {fn:makeRocket, w:2},
   {fn:makeDuck,   w:6},  {fn:makeRabbit, w:7},
   {fn:makeBillboard, w:3},
-  {fn:makePeppa, w:3}, {fn:makeGeorge, w:2},
-  {fn:makeMummyPig, w:2}, {fn:makeDaddyPig, w:2},
+  {fn:makePeppa, w:2}, {fn:makeGeorge, w:1},
+  {fn:makeMummyPig, w:1}, {fn:makeDaddyPig, w:1},
 ];
 const OBJ_TOTAL = OBJ_TYPES.reduce((s,t)=>s+t.w, 0);
 
@@ -1762,6 +1762,22 @@ function spawnChunk(cx, cz) {
       fn = pickObjFn();
     const obj = fn(x, z);
     objs.push(obj); allWorldObjects.push(obj);
+  }
+  // Always place some Peppa family near the lake
+  const LAKE_X=0, LAKE_Z=260, LAKE_R=82;
+  const ccx = cx*CHUNK_SIZE + CHUNK_SIZE/2;
+  const ccz = cz*CHUNK_SIZE + CHUNK_SIZE/2;
+  const dLk = Math.sqrt((ccx-LAKE_X)**2 + (ccz-LAKE_Z)**2);
+  if (dLk < LAKE_R + CHUNK_SIZE) {
+    const pigFns = [makePeppa, makeGeorge, makeMummyPig, makeDaddyPig];
+    const nPigs = 1 + Math.floor(Math.random()*2); // 1 or 2 per nearby chunk
+    for (let p = 0; p < nPigs; p++) {
+      const angle = Math.random()*Math.PI*2;
+      const r = LAKE_R + 18 + Math.random()*45;
+      const obj = pigFns[Math.floor(Math.random()*pigFns.length)](
+        LAKE_X + Math.cos(angle)*r, LAKE_Z + Math.sin(angle)*r);
+      objs.push(obj); allWorldObjects.push(obj);
+    }
   }
   return objs;
 }
