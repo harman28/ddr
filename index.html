@@ -400,137 +400,254 @@ function makeCar(color) {
   scene.add(g); return g;
 }
 
-function makeBus(color) {
+function makeBus() { // always a yellow school bus
   const g = new THREE.Group();
-  const bodyMat  = new THREE.MeshLambertMaterial({ color });
-  const darkMat  = new THREE.MeshLambertMaterial({ color: new THREE.Color(color).multiplyScalar(0.6) });
+  const bodyMat  = new THREE.MeshLambertMaterial({ color: 0xf5c518 }); // school bus yellow
+  const darkMat  = new THREE.MeshLambertMaterial({ color: 0xc4a010 });
+  const blackMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  const redMat   = new THREE.MeshLambertMaterial({ color: 0xcc1111 });
   const glassMat = new THREE.MeshLambertMaterial({ color: 0x99ccee, transparent: true, opacity: 0.7 });
   const tireMat  = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
   const hubMat   = new THREE.MeshLambertMaterial({ color: 0xaaaaaa });
-  const chromeMat= new THREE.MeshLambertMaterial({ color: 0xcccccc });
+  const amberMat = new THREE.MeshLambertMaterial({ color: 0xff8800, emissive: new THREE.Color(0.3,0.15,0) });
+  const hlMat    = new THREE.MeshLambertMaterial({ color: 0xffffcc, emissive: new THREE.Color(0.2,0.2,0) });
+  const tlMat    = new THREE.MeshLambertMaterial({ color: 0xff2200, emissive: new THREE.Color(0.25,0,0) });
 
-  // Long tall body
-  const body = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.7, 8.4), bodyMat);
-  body.position.set(0, 1.45, 0); body.castShadow = true; g.add(body);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.75, 0.15, 8.3), darkMat);
-  roof.position.set(0, 2.37, 0); g.add(roof);
+  // Main body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.7, 8.2), bodyMat);
+  body.position.set(0, 1.45, -0.1); body.castShadow = true; g.add(body);
+  // Roof
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.75, 0.15, 8.2), darkMat);
+  roof.position.set(0, 2.37, -0.1); g.add(roof);
 
-  // Flat front windshield + destination board
-  const wf = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.85), glassMat);
-  wf.position.set(0, 1.75, 4.22); g.add(wf);
-  const dest = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.32, 0.1), darkMat);
-  dest.position.set(0, 2.18, 4.22); g.add(dest);
+  // Short hood / snout at front (school buses have a small engine nose)
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.85, 1.1), bodyMat);
+  hood.position.set(0, 0.92, 4.65); hood.castShadow = true; g.add(hood);
+  // Black front bumper
+  const fBump = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.38, 0.25), blackMat);
+  fBump.position.set(0, 0.46, 4.72); g.add(fBump);
+  // Red rear bumper
+  const rBump = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.38, 0.25), redMat);
+  rBump.position.set(0, 0.46, -4.22); g.add(rBump);
+
+  // Windshield (slightly angled, above the hood)
+  const wf = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.78), glassMat);
+  wf.position.set(0, 1.68, 4.18); wf.rotation.x = -0.12; g.add(wf);
   // Rear window
-  const rw = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.80), glassMat);
-  rw.position.set(0, 1.75, -4.22); rw.rotation.y = Math.PI; g.add(rw);
+  const rw = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.75), glassMat);
+  rw.position.set(0, 1.75, -4.12); rw.rotation.y = Math.PI; g.add(rw);
 
-  // Side windows (4 per side)
+  // Side windows — 5 per side, characteristic school bus spacing
   for (const s of [-1, 1]) {
-    for (let i = 0; i < 4; i++) {
-      const sw = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.65), glassMat);
-      sw.position.set(s * 1.42, 1.78, 2.6 - i * 1.85);
+    for (let i = 0; i < 5; i++) {
+      const sw = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.62), glassMat);
+      sw.position.set(s * 1.42, 1.78, 2.9 - i * 1.52);
       sw.rotation.y = s * Math.PI/2; g.add(sw);
     }
   }
 
-  // Bumpers
-  const fBump = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.28, 0.22), chromeMat);
-  fBump.position.set(0, 0.48, 4.3); g.add(fBump);
-  const rBump = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.28, 0.22), chromeMat);
-  rBump.position.set(0, 0.48, -4.3); g.add(rBump);
+  // Black stripe along the body bottom
+  for (const s of [-1, 1]) {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.28, 8.1), blackMat);
+    stripe.position.set(s * 1.42, 0.74, -0.1); g.add(stripe);
+  }
 
   // Headlights / tail lights
-  const hlMat = new THREE.MeshLambertMaterial({ color: 0xffffcc, emissive: new THREE.Color(0.2,0.2,0) });
-  const tlMat = new THREE.MeshLambertMaterial({ color: 0xff2200, emissive: new THREE.Color(0.25,0,0) });
   for (const s of [-1, 1]) {
     const hl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.26, 0.1), hlMat);
-    hl.position.set(s * 1.05, 0.72, 4.26); g.add(hl);
+    hl.position.set(s * 0.95, 0.9, 4.73); g.add(hl);
     const tl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.26, 0.1), tlMat);
-    tl.position.set(s * 1.05, 0.72, -4.26); g.add(tl);
+    tl.position.set(s * 1.05, 0.72, -4.23); g.add(tl);
+  }
+
+  // Amber roof flashers (the distinctive school bus lights)
+  for (const s of [-0.7, 0.7]) {
+    const flash = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.26, 0.42), amberMat);
+    flash.position.set(s, 2.52, 3.6); g.add(flash);
   }
 
   // 3 axles, 6 wheels
-  const wGeo = new THREE.CylinderGeometry(0.50, 0.50, 0.35, 14);
+  const wGeo = new THREE.CylinderGeometry(0.50, 0.50, 0.36, 14);
   for (const [wx, wy, wz] of [
-    [-1.5,0.50, 3.2],[1.5,0.50, 3.2],
-    [-1.5,0.50, 0.0],[1.5,0.50, 0.0],
-    [-1.5,0.50,-3.2],[1.5,0.50,-3.2],
+    [-1.5,0.50, 3.4],[1.5,0.50, 3.4],
+    [-1.5,0.50, 0.2],[1.5,0.50, 0.2],
+    [-1.5,0.50,-3.0],[1.5,0.50,-3.0],
   ]) {
     const wheel = new THREE.Mesh(wGeo, tireMat); wheel.rotation.z = Math.PI/2;
     wheel.position.set(wx, wy, wz); wheel.castShadow = true; g.add(wheel);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.37,8), hubMat);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.38,8), hubMat);
     hub.rotation.z = Math.PI/2; hub.position.set(wx, wy, wz); g.add(hub);
   }
 
   scene.add(g); return g;
 }
 
-function makeTruck(color) {
+function makeDumpTruck() {
   const g = new THREE.Group();
-  const cabMat  = new THREE.MeshLambertMaterial({ color });
-  const darkMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(color).multiplyScalar(0.55) });
-  const cargMat = new THREE.MeshLambertMaterial({ color: 0xdddddd });
-  const cargD   = new THREE.MeshLambertMaterial({ color: 0xaaaaaa });
+  const cabColor = Math.random() < 0.5 ? 0xff6600 : 0xffaa00; // orange or construction yellow
+  const cabMat  = new THREE.MeshLambertMaterial({ color: cabColor });
+  const darkMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(cabColor).multiplyScalar(0.55) });
+  const bedMat  = new THREE.MeshLambertMaterial({ color: 0x777777 }); // unpainted steel bed
+  const bedDark = new THREE.MeshLambertMaterial({ color: 0x444444 });
   const glassMat= new THREE.MeshLambertMaterial({ color: 0x99ccee, transparent: true, opacity: 0.7 });
   const tireMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
   const hubMat  = new THREE.MeshLambertMaterial({ color: 0x888888 });
   const chromeMat=new THREE.MeshLambertMaterial({ color: 0xcccccc });
+  const hlMat   = new THREE.MeshLambertMaterial({ color: 0xffffcc, emissive: new THREE.Color(0.2,0.2,0) });
+  const tlMat   = new THREE.MeshLambertMaterial({ color: 0xff2200, emissive: new THREE.Color(0.25,0,0) });
 
-  // Cab — tall boxy, at front (+Z)
-  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.2, 3.6), cabMat);
-  cab.position.set(0, 1.75, 3.0); cab.castShadow = true; g.add(cab);
-  const cabRoof = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.16, 3.5), darkMat);
-  cabRoof.position.set(0, 2.93, 3.0); g.add(cabRoof);
-  // Exhaust stack
-  const exh = new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.13,1.6,6), darkMat);
-  exh.position.set(-1.05, 3.2, 2.4); g.add(exh);
+  // Cab — short and tall
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.4, 3.4), cabMat);
+  cab.position.set(0, 1.8, 3.1); cab.castShadow = true; g.add(cab);
+  const cabRoof = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.2, 3.3), darkMat);
+  cabRoof.position.set(0, 3.08, 3.1); g.add(cabRoof);
+  const exh = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,1.8,6), darkMat);
+  exh.position.set(-1.1, 3.3, 2.6); g.add(exh);
 
-  // Windshield + side cab windows
-  const wf = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.85), glassMat);
-  wf.position.set(0, 2.05, 4.82); g.add(wf);
+  const wf = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.9), glassMat);
+  wf.position.set(0, 2.25, 4.82); g.add(wf);
   for (const s of [-1, 1]) {
-    const sw = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.7), glassMat);
-    sw.position.set(s * 1.42, 2.05, 3.0); sw.rotation.y = s * Math.PI/2; g.add(sw);
+    const sw = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.75), glassMat);
+    sw.position.set(s * 1.47, 2.25, 3.1); sw.rotation.y = s * Math.PI/2; g.add(sw);
   }
-  // Front grille + bumper + headlights
-  const grille = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.75, 0.16), darkMat);
-  grille.position.set(0, 1.05, 4.82); g.add(grille);
-  const fBump = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.32, 0.25), chromeMat);
-  fBump.position.set(0, 0.52, 4.84); g.add(fBump);
-  const hlMat = new THREE.MeshLambertMaterial({ color: 0xffffcc, emissive: new THREE.Color(0.2,0.2,0) });
+  const grille = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.85, 0.18), darkMat);
+  grille.position.set(0, 1.1, 4.82); g.add(grille);
+  const fBump = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.38, 0.28), chromeMat);
+  fBump.position.set(0, 0.55, 4.84); g.add(fBump);
   for (const s of [-1, 1]) {
-    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.28, 0.1), hlMat);
-    hl.position.set(s * 1.0, 1.35, 4.83); g.add(hl);
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.3, 0.1), hlMat);
+    hl.position.set(s * 1.05, 1.55, 4.83); g.add(hl);
   }
 
-  // Cargo trailer — behind cab (-Z)
-  const cargo = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.7, 5.8), cargMat);
-  cargo.position.set(0, 1.5, -1.7); cargo.castShadow = true; g.add(cargo);
-  const cargoRoof = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.14, 5.75), cargD);
-  cargoRoof.position.set(0, 2.37, -1.7); g.add(cargoRoof);
-  const rDoor = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.55, 0.14), cargD);
-  rDoor.position.set(0, 1.5, -4.61); g.add(rDoor);
-  const tlMat = new THREE.MeshLambertMaterial({ color: 0xff2200, emissive: new THREE.Color(0.25,0,0) });
+  // Dump bed (U-shaped trough, slightly tilted back for "just-dumped" look)
+  const bedPivot = new THREE.Group();
+  // Floor
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.24, 5.2), bedMat);
+  floor.position.set(0, 0, 0); bedPivot.add(floor);
+  // Left/right walls
   for (const s of [-1, 1]) {
-    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.28, 0.1), tlMat);
-    tl.position.set(s * 0.95, 1.0, -4.62); g.add(tl);
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.2, 5.2), bedMat);
+    wall.position.set(s * 1.24, 0.72, 0); bedPivot.add(wall);
+  }
+  // Front wall (cab side)
+  const fWall = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.5, 0.22), bedDark);
+  fWall.position.set(0, 0.64, 2.6); bedPivot.add(fWall);
+  // Rear gate (dropped open)
+  const rGate = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.18, 1.1), bedDark);
+  rGate.position.set(0, -0.35, -2.62); rGate.rotation.x = 0.5; bedPivot.add(rGate);
+  bedPivot.position.set(0, 1.72, -1.4);
+  bedPivot.rotation.x = -0.12; // slight rearward tilt
+  g.add(bedPivot);
+
+  for (const s of [-1, 1]) {
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.3, 0.1), tlMat);
+    tl.position.set(s * 1.05, 1.2, -4.1); g.add(tl);
   }
 
-  // 4 axles, 8 wheels
-  const wGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.4, 14);
+  // Big chunky wheels — 4 axles
+  const wGeo = new THREE.CylinderGeometry(0.64, 0.64, 0.46, 14);
   for (const [wx, wy, wz] of [
-    [-1.55,0.55, 4.2],[1.55,0.55, 4.2],
-    [-1.55,0.55, 1.8],[1.55,0.55, 1.8],
-    [-1.55,0.55,-0.5],[1.55,0.55,-0.5],
-    [-1.55,0.55,-3.5],[1.55,0.55,-3.5],
+    [-1.62,0.64, 4.4],[1.62,0.64, 4.4],
+    [-1.62,0.64, 2.0],[1.62,0.64, 2.0],
+    [-1.62,0.64,-0.6],[1.62,0.64,-0.6],
+    [-1.62,0.64,-3.2],[1.62,0.64,-3.2],
   ]) {
     const wheel = new THREE.Mesh(wGeo, tireMat); wheel.rotation.z = Math.PI/2;
     wheel.position.set(wx, wy, wz); wheel.castShadow = true; g.add(wheel);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.42,8), hubMat);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.27,0.27,0.48,8), hubMat);
     hub.rotation.z = Math.PI/2; hub.position.set(wx, wy, wz); g.add(hub);
   }
 
   scene.add(g); return g;
+}
+
+function makeCementMixer() {
+  const g = new THREE.Group();
+  const cabColor = Math.random() < 0.5 ? 0xcc2200 : 0x2244cc; // red or blue cab
+  const cabMat  = new THREE.MeshLambertMaterial({ color: cabColor });
+  const darkMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(cabColor).multiplyScalar(0.55) });
+  const drumMat = new THREE.MeshLambertMaterial({ color: 0xcccccc }); // grey drum
+  const drumD   = new THREE.MeshLambertMaterial({ color: 0x888888 });
+  const ringMat = new THREE.MeshLambertMaterial({ color: 0xff7700 }); // orange safety rings
+  const glassMat= new THREE.MeshLambertMaterial({ color: 0x99ccee, transparent: true, opacity: 0.7 });
+  const tireMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+  const hubMat  = new THREE.MeshLambertMaterial({ color: 0x888888 });
+  const chromeMat=new THREE.MeshLambertMaterial({ color: 0xcccccc });
+  const hlMat   = new THREE.MeshLambertMaterial({ color: 0xffffcc, emissive: new THREE.Color(0.2,0.2,0) });
+  const tlMat   = new THREE.MeshLambertMaterial({ color: 0xff2200, emissive: new THREE.Color(0.25,0,0) });
+
+  // Cab
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.2, 3.4), cabMat);
+  cab.position.set(0, 1.75, 3.0); cab.castShadow = true; g.add(cab);
+  const cabRoof = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.18, 3.3), darkMat);
+  cabRoof.position.set(0, 2.94, 3.0); g.add(cabRoof);
+  const exh = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,1.6,6), darkMat);
+  exh.position.set(-1.1, 3.1, 2.4); g.add(exh);
+
+  const wf = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.88), glassMat);
+  wf.position.set(0, 2.08, 4.72); g.add(wf);
+  for (const s of [-1, 1]) {
+    const sw = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.72), glassMat);
+    sw.position.set(s * 1.47, 2.08, 3.0); sw.rotation.y = s * Math.PI/2; g.add(sw);
+  }
+  const grille = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.78, 0.16), darkMat);
+  grille.position.set(0, 1.08, 4.72); g.add(grille);
+  const fBump = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.34, 0.26), chromeMat);
+  fBump.position.set(0, 0.52, 4.74); g.add(fBump);
+  for (const s of [-1, 1]) {
+    const hl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.28, 0.1), hlMat);
+    hl.position.set(s * 1.05, 1.38, 4.73); g.add(hl);
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.28, 0.1), tlMat);
+    tl.position.set(s * 1.05, 1.0, -4.1); g.add(tl);
+  }
+
+  // Chassis frame behind cab
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.42, 5.6), darkMat);
+  frame.position.set(0, 0.82, -0.8); g.add(frame);
+
+  // THE DRUM — cylinder tilted so front end is higher (classic mixer posture)
+  // rotation.x = 0.28 tilts Y-axis toward +Z, meaning top points cab-ward
+  const drumGroup = new THREE.Group();
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 4.8, 16), drumMat);
+  drumGroup.add(drum);
+  // Front taper (narrower end, points toward cab)
+  const frontCone = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 1.1, 0.9, 16), drumD);
+  frontCone.position.set(0, 2.85, 0); drumGroup.add(frontCone);
+  // Rear opening (wider, toward back of truck — where concrete comes out)
+  const rearRing = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.2, 16), drumD);
+  rearRing.position.set(0, -2.5, 0); drumGroup.add(rearRing);
+  // Discharge chute at rear
+  const chute = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.16, 1.4), darkMat);
+  chute.position.set(0, -3.3, 0.3); chute.rotation.x = -0.5; drumGroup.add(chute);
+  // Orange safety rings around the drum
+  for (let i = 0; i < 4; i++) {
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.14, 1.14, 0.2, 16), ringMat);
+    ring.position.set(0, -2.0 + i * 1.25, 0); drumGroup.add(ring);
+  }
+  // Tilt and position: front (top) tilted toward cab (+Z), center raised
+  drumGroup.rotation.x = 0.28;
+  drumGroup.position.set(0, 3.0, -1.4);
+  g.add(drumGroup);
+
+  // 4 axles, 8 wheels
+  const wGeo = new THREE.CylinderGeometry(0.58, 0.58, 0.42, 14);
+  for (const [wx, wy, wz] of [
+    [-1.6,0.58, 4.3],[1.6,0.58, 4.3],
+    [-1.6,0.58, 1.9],[1.6,0.58, 1.9],
+    [-1.6,0.58,-0.7],[1.6,0.58,-0.7],
+    [-1.6,0.58,-3.2],[1.6,0.58,-3.2],
+  ]) {
+    const wheel = new THREE.Mesh(wGeo, tireMat); wheel.rotation.z = Math.PI/2;
+    wheel.position.set(wx, wy, wz); wheel.castShadow = true; g.add(wheel);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,0.44,8), hubMat);
+    hub.rotation.z = Math.PI/2; hub.position.set(wx, wy, wz); g.add(hub);
+  }
+
+  scene.add(g); return g;
+}
+
+function makeTruck() { // randomly a dump truck or cement mixer
+  return Math.random() < 0.5 ? makeDumpTruck() : makeCementMixer();
 }
 
 // ─── PLAYER ─────────────────────────────────────────────────────
